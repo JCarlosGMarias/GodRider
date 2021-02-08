@@ -90,9 +90,8 @@ func (infrastructure *ProvidersInfrastructure) isDbUpdated() bool {
 	timeNow := time.Now().Unix()
 	lastUpdate := infrastructure.lastUpdate.Unix()
 	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
-	fmt.Printf("Now (%d) - Last Update (%d) = %d", timeNow, lastUpdate, timeAfterLastUpdate)
-	fmt.Println()
-	return isProviderDbSet && (timeAfterLastUpdate > 3600)
+	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
+	return isProviderDbSet && (timeAfterLastUpdate <= 3600)
 }
 
 func (infrastructure *ProvidersInfrastructure) countRegisters(db *sql.DB, count *int) error {

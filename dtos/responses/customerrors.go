@@ -10,6 +10,7 @@ const (
 	BAD_CREDENTIALS
 	BAD_TOKEN
 	REGISTER_NOT_FOUND
+	ADD_ERROR
 )
 
 func (response *ErrorResponse) Error() string {

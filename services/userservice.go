@@ -37,6 +37,16 @@ func (service *UserService) GetUserByCredentials(userRq *requests.UserRequest) (
 	return userResponse, nil
 }
 
+func (service *UserService) GetUserByToken(userRq *requests.UserRequest) (responses.UserResponse, error) {
+	user, err := service.userInfrastructure.GetSingleUserByToken(userRq.Token)
+	if err != nil || user.ID == 0 {
+		return responses.UserResponse{}, &responses.ErrorResponse{Code: responses.BAD_TOKEN, Message: "User token not found or expired!"}
+	}
+
+	userResponse := parseUserToUserResponse(&user)
+	return userResponse, nil
+}
+
 func parseUserToUserResponse(user *models.User) responses.UserResponse {
 	return responses.UserResponse{
 		ID:      user.ID,

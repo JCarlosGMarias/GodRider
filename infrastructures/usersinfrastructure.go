@@ -76,6 +76,32 @@ func (infrastructure *UsersInfrastructure) GetSingleUserByUserAndPass(userName s
 
 	statement, _ := db.Prepare("SELECT * FROM user WHERE user = ? AND password = ?;")
 	row := statement.QueryRow(userName, pass)
+	defer statement.Close()
+
+	var user models.User
+	err := row.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}
+
+func (infrastructure *UsersInfrastructure) GetSingleUserByToken(token string) (models.User, error) {
+	if infrastructure.isDbUpdated() {
+		for _, user := range infrastructure.userDb {
+			if token == user.Token.String {
+				return user, nil
+			}
+		}
+		return models.User{}, fmt.Errorf("User with given token not found.")
+	}
+
+	db, _ := sql.Open("sqlite", "./db/godrider.db")
+	defer db.Close()
+
+	statement, _ := db.Prepare("SELECT * FROM user WHERE token = ?;")
+	row := statement.QueryRow(token)
+	defer statement.Close()
 
 	var user models.User
 	err := row.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
@@ -91,7 +117,7 @@ func (infrastructure *UsersInfrastructure) isDbUpdated() bool {
 	lastUpdate := infrastructure.lastUpdate.Unix()
 	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
 	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
-	return isUserDbSet && (timeAfterLastUpdate > 3600)
+	return isUserDbSet && (timeAfterLastUpdate <= 3600)
 }
 
 func (infrastructure *UsersInfrastructure) countRegisters(db *sql.DB, count *int) error {

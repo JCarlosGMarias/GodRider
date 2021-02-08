@@ -16,7 +16,7 @@ CREATE TABLE userprovider (
 );
 CREATE TABLE apiurls (Key TEXT PRIMARY KEY, url TEXT);
 -- Inserts
-INSERT INTO user (user, password, name, surname, email, phone, level) VALUES ('John', 'Salchichon', 'John', 'Salchichon', 'asdf@omg.god', '666333987', 1);
+INSERT INTO user (user, token, password, name, surname, email, phone, level) VALUES ('John', 'acs67t23rbhjf987tykgfv', 'Salchichon', 'John', 'Salchichon', 'asdf@omg.god', '666333987', 1);
 INSERT INTO provider (name, contact) VALUES ('Balloon', 'ballooncorp@evil.death');
 INSERT INTO provider (name, contact) VALUES ('PanzerChomps', 'panzercorp@evil.death');
 INSERT INTO provider (name, contact) VALUES ('SimplyDelight', 'simplydelightcorp@evil.death');
@@ -24,7 +24,7 @@ INSERT INTO provider (name, contact) VALUES ('Nom', 'nomcorp@evil.death');
 INSERT INTO apiurls VALUES ('LoginUrl', '/api/Login');
 INSERT INTO apiurls VALUES ('GetApiUrlsUrl', '/api/GetApiUrls');
 INSERT INTO apiurls VALUES ('GetProvidersUrl', '/api/GetProviders');
-INSERT INTO apiurls VALUES ('ConnectToProviderUrl', '/api/ConnectToProvider');
-INSERT INTO apiurls VALUES ('RevokeProviderUrl', '/api/RevokeProvider');
+INSERT INTO apiurls VALUES ('SubscribeToProviderUrl', '/api/SubscribeToProvider');
+INSERT INTO apiurls VALUES ('UnsubscribeFromProviderUrl', '/api/UnsubscribeFromProvider');
 INSERT INTO apiurls VALUES ('GetOrdersUrl', '/api/GetOrders');
 INSERT INTO apiurls VALUES ('AssignOrderUrl', '/api/AssignOrder');

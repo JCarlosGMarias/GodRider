@@ -27,7 +27,7 @@ func (service *ProviderService) GetAllProviders() []responses.ProviderResponse {
 	return providersResponses
 }
 
-func (service *ProviderService) GetProviderById(request requests.ProviderRequest) (responses.ProviderResponse, error) {
+func (service *ProviderService) GetProviderById(request *requests.ProviderRequest) (responses.ProviderResponse, error) {
 	provider, err := service.providerInfrastructure.GetSingleProviderById(request.ProviderID)
 	if err != nil || provider.ID == 0 {
 		return responses.ProviderResponse{}, &responses.ErrorResponse{Code: responses.REGISTER_NOT_FOUND, Message: "Provider not found!"}

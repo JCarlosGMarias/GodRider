@@ -41,7 +41,7 @@ func IsValidToken(w http.ResponseWriter, r *http.Request, token string) bool {
 	}
 
 	if !isValidToken {
-		json.NewEncoder(w).Encode(responses.ErrorResponse{Code: 3, Message: "User token not found or expired!"})
+		json.NewEncoder(w).Encode(responses.ErrorResponse{Code: responses.BAD_TOKEN, Message: "User token not found or expired!"})
 	}
 	return isValidToken
 }

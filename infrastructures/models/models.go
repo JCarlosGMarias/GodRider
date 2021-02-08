@@ -20,6 +20,12 @@ type Provider struct {
 	Contact string
 }
 
+type UserProvider struct {
+	UserId     int
+	ProviderId int
+	IsActive   int
+}
+
 type ApiUrl struct {
 	Key string
 	Url string

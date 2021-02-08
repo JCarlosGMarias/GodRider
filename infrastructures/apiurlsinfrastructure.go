@@ -90,9 +90,8 @@ func (infrastructure *ApiUrlsInfrastructure) isDbUpdated() bool {
 	timeNow := time.Now().Unix()
 	lastUpdate := infrastructure.lastUpdate.Unix()
 	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
-	fmt.Printf("Now (%d) - Last Update (%d) = %d", timeNow, lastUpdate, timeAfterLastUpdate)
-	fmt.Println()
-	return isApiUrlsDbSet && (timeAfterLastUpdate > 3600)
+	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
+	return isApiUrlsDbSet && (timeAfterLastUpdate <= 3600)
 }
 
 func (infrastructure *ApiUrlsInfrastructure) countRegisters(db *sql.DB, count *int) error {
