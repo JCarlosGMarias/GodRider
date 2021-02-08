@@ -27,14 +27,14 @@ func (service *UserService) GetAllUsers() []responses.UserResponse {
 	return usersResponses
 }
 
-func (service *UserService) GetUserByCredentials(userRq *requests.UserRequest) (responses.UserResponse, responses.ErrorResponse) {
+func (service *UserService) GetUserByCredentials(userRq *requests.UserRequest) (responses.UserResponse, error) {
 	user, err := service.userInfrastructure.GetSingleUserByUserAndPass(userRq.User, userRq.Password)
 	if err != nil || user.ID == 0 {
-		return responses.UserResponse{}, responses.ErrorResponse{Code: 2, Message: "User or password are not correct!"}
+		return responses.UserResponse{}, &responses.ErrorResponse{Code: responses.BAD_CREDENTIALS, Message: "User or password are not correct!"}
 	}
 
 	userResponse := parseUserToUserResponse(&user)
-	return userResponse, responses.ErrorResponse{}
+	return userResponse, nil
 }
 
 func parseUserToUserResponse(user *models.User) responses.UserResponse {

@@ -1,7 +1,7 @@
 package responses
 
 type ErrorResponse struct {
-	Code    int
+	Code    ErrorCode
 	Message string
 }
 

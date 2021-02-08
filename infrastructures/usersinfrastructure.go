@@ -32,9 +32,14 @@ func (infrastructure *UsersInfrastructure) GetAllUsers() ([]models.User, int, er
 		return nil, 0, err
 	}
 
+	rows, err := db.Query("SELECT * FROM user;")
+	defer rows.Close()
+	if err != nil {
+		return nil, 0, err
+	}
+
 	userDb := make([]models.User, count)
 	toUpdate := false
-	rows, _ := db.Query("SELECT * FROM user;")
 	for rows.Next() {
 		var user models.User
 		err := rows.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
@@ -63,27 +68,29 @@ func (infrastructure *UsersInfrastructure) GetSingleUserByUserAndPass(userName s
 				return user, nil
 			}
 		}
-		return models.User{}, nil
-	} else {
-		db, _ := sql.Open("sqlite", "./db/godrider.db")
-		defer db.Close()
-
-		query := fmt.Sprintf("SELECT * FROM user WHERE user = '%s' AND password = '%s';", userName, pass)
-		statement, _ := db.Prepare(query)
-		row := statement.QueryRow()
-
-		var user models.User
-		err := row.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
-		if err != nil {
-			return models.User{}, err
-		}
-		return user, nil
+		return models.User{}, fmt.Errorf("User %s not found.", userName)
 	}
+
+	db, _ := sql.Open("sqlite", "./db/godrider.db")
+	defer db.Close()
+
+	statement, _ := db.Prepare("SELECT * FROM user WHERE user = ? AND password = ?;")
+	row := statement.QueryRow(userName, pass)
+
+	var user models.User
+	err := row.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
 }
 
 func (infrastructure *UsersInfrastructure) isDbUpdated() bool {
-	isUserDbSet := infrastructure.userDb != nil
+	isUserDbSet := infrastructure.rows > 0
+	timeNow := time.Now().Unix()
+	lastUpdate := infrastructure.lastUpdate.Unix()
 	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
+	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
 	return isUserDbSet && (timeAfterLastUpdate > 3600)
 }
 

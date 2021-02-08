@@ -19,3 +19,8 @@ type Provider struct {
 	Name    string
 	Contact string
 }
+
+type ApiUrl struct {
+	Key string
+	Url string
+}

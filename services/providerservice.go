@@ -3,31 +3,44 @@ package services
 import (
 	"godrider/dtos/requests"
 	"godrider/dtos/responses"
+	"godrider/infrastructures"
 	"godrider/infrastructures/models"
 )
 
 type ProviderService struct {
-	providerDb []models.Provider
+	providerInfrastructure infrastructures.ProvidersInfrastructure
 }
 
 var ProviderSrv = ProviderService{
-	providerDb: []models.Provider{
-		{ID: 1, Name: "Balloon", Contact: "ballooncorp@evil.death"},
-		{ID: 2, Name: "PanzerChomps", Contact: "panzercorp@evil.death"},
-		{ID: 3, Name: "SimplyDelight", Contact: "simplydelightcorp@evil.death"},
-		{ID: 4, Name: "Nom", Contact: "nomcorp@evil.death"},
-	},
+	providerInfrastructure: infrastructures.ProvidersDb,
 }
 
-func (service *ProviderService) GetAllProviders() []models.Provider {
-	return service.providerDb
-}
+func (service *ProviderService) GetAllProviders() []responses.ProviderResponse {
+	providers, count, _ := service.providerInfrastructure.GetAllProviders()
 
-func (service *ProviderService) GetProviderById(request requests.ProviderRequest) (models.Provider, responses.ErrorResponse) {
-	for _, provider := range service.providerDb {
-		if provider.ID == request.ProviderID {
-			return provider, responses.ErrorResponse{}
-		}
+	providersResponses := make([]responses.ProviderResponse, count)
+	for _, provider := range providers {
+		providersResponse := parseProviderToProviderResponse(&provider)
+		providersResponses = append(providersResponses, providersResponse)
 	}
-	return models.Provider{}, responses.ErrorResponse{Code: 4, Message: "Provider not found!"}
+
+	return providersResponses
+}
+
+func (service *ProviderService) GetProviderById(request requests.ProviderRequest) (responses.ProviderResponse, error) {
+	provider, err := service.providerInfrastructure.GetSingleProviderById(request.ProviderID)
+	if err != nil || provider.ID == 0 {
+		return responses.ProviderResponse{}, &responses.ErrorResponse{Code: responses.REGISTER_NOT_FOUND, Message: "Provider not found!"}
+	}
+
+	providerResponse := parseProviderToProviderResponse(&provider)
+	return providerResponse, nil
+}
+
+func parseProviderToProviderResponse(provider *models.Provider) responses.ProviderResponse {
+	return responses.ProviderResponse{
+		ID:      provider.ID,
+		Name:    provider.Name,
+		Contact: provider.Contact,
+	}
 }
