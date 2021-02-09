@@ -25,3 +25,8 @@ type UserProviderRequest struct {
 type ApiUrlsRequest struct {
 	BaseRequest
 }
+
+type OrderRequest struct {
+	BaseRequest
+	ProviderIDs []int `json:"provider-ids"`
+}

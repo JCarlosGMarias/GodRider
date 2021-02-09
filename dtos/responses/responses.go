@@ -23,3 +23,20 @@ type ProviderResponse struct {
 	Name    string `json:"name"`
 	Contact string `json:"contact"`
 }
+
+type OrderResponse struct {
+	CustomerName     string
+	Business         string
+	ReceptionAddress string
+	ShippingAddress  string
+	ReceptionCoords  []float32
+	ShippingCoords   []float32
+	Amount           float32
+	OrderLines       []OrderLineResponse
+}
+
+type OrderLineResponse struct {
+	ProductName string
+	Price       float32
+	Quantity    uint16
+}

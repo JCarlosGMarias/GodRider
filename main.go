@@ -18,5 +18,6 @@ func main() {
 	// Providers
 	http.HandleFunc(routes["GetProvidersUrl"], controllers.GetProviders)
 	http.HandleFunc(routes["ConnectToProviderUrl"], controllers.ConnectToProvider)
+	http.HandleFunc(routes["GetOrdersUrl"], controllers.GetOrders)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

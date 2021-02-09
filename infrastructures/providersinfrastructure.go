@@ -3,6 +3,7 @@ package infrastructures
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"godrider/infrastructures/models"
@@ -97,6 +98,69 @@ func (istruct *ProvidersInfrastructure) GetSingleProviderById(id int) (models.Pr
 		return provider, nil
 	}
 	return models.Provider{}, err
+}
+
+func (istruct *ProvidersInfrastructure) GetManyProvidersByIds(ids []int) ([]models.Provider, error) {
+	idsCount := len(ids)
+	if idsCount <= 1 {
+		provider, err := istruct.GetSingleProviderById(ids[0])
+		return []models.Provider{provider}, err
+	}
+
+	if istruct.isDbUpdated() {
+		providers := make([]models.Provider, 0)
+		for _, provider := range istruct.providerDb {
+			for _, id := range ids {
+				if id == provider.ID {
+					providers = append(providers, provider)
+				}
+			}
+		}
+
+		if len(providers) > 0 {
+			return providers, fmt.Errorf("No providers found.")
+		}
+		return providers, nil
+	}
+
+	db, err := sql.Open("sqlite", "./db/godrider.db")
+	if err != nil {
+		return make([]models.Provider, 0), err
+	}
+	defer db.Close()
+
+	queryPlaceHolders := make([]string, idsCount)
+	for i := 0; i < idsCount; i++ {
+		queryPlaceHolders[i] = fmt.Sprint(ids[i])
+	}
+	joined := strings.Join(queryPlaceHolders, ", ")
+
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM provider WHERE ID IN (%s);", joined))
+	if err != nil {
+		return make([]models.Provider, 0), err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query(ids)
+	if err != nil {
+		return make([]models.Provider, 0), err
+	}
+	defer rows.Close()
+
+	providers := make([]models.Provider, idsCount)
+	for index, provider := range providers {
+		if !rows.Next() {
+			break
+		}
+
+		err := rows.Scan(&provider.ID, &provider.Name, &provider.Contact)
+		if err != nil {
+			return make([]models.Provider, 0), err
+		}
+
+		providers[index] = provider
+	}
+	return providers, nil
 }
 
 func (istruct *ProvidersInfrastructure) isDbUpdated() bool {

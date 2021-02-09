@@ -11,6 +11,7 @@ const (
 	BAD_TOKEN
 	REGISTER_NOT_FOUND
 	ADD_ERROR
+	WEBSERVICE_CONNECTION_FAILURE
 )
 
 func (response *ErrorResponse) Error() string {

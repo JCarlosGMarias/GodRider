@@ -17,10 +17,11 @@ CREATE TABLE userprovider (
 CREATE TABLE apiurls (Key TEXT PRIMARY KEY, url TEXT);
 -- Inserts
 INSERT INTO user (user, token, password, name, surname, email, phone, level) VALUES ('John', 'acs67t23rbhjf987tykgfv', 'Salchichon', 'John', 'Salchichon', 'asdf@omg.god', '666333987', 1);
-INSERT INTO provider (name, contact) VALUES ('Balloon', 'ballooncorp@evil.death');
-INSERT INTO provider (name, contact) VALUES ('PanzerChomps', 'panzercorp@evil.death');
+INSERT INTO provider (name, contact) VALUES ('Balunn', 'balunncorp@evil.death');
+INSERT INTO provider (name, contact) VALUES ('PanzerMeals', 'panzercorp@evil.death');
 INSERT INTO provider (name, contact) VALUES ('SimplyDelight', 'simplydelightcorp@evil.death');
-INSERT INTO provider (name, contact) VALUES ('Nom', 'nomcorp@evil.death');
+INSERT INTO provider (name, contact) VALUES ('Gulp', 'gulpcorp@evil.death');
+INSERT INTO provider (name, contact) VALUES ('Fooscott', 'Bartiger');
 INSERT INTO apiurls VALUES ('LoginUrl', '/api/users/Login');
 INSERT INTO apiurls VALUES ('GetApiUrlsUrl', '/api/config/GetApiUrls');
 INSERT INTO apiurls VALUES ('GetProvidersUrl', '/api/providers/Get');
