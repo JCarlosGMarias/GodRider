@@ -25,7 +25,8 @@ func IsValidMethod(w http.ResponseWriter, r *http.Request, allowedMethods []stri
 
 	if !isValidMethod {
 		message := fmt.Sprintf("Incoming request with method %s not allowed!", r.Method)
-		json.NewEncoder(w).Encode(responses.ErrorResponse{Code: 1, Message: message})
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(responses.ErrorResponse{Code: responses.METHOD_UNAUTHORIZED, Message: message})
 	}
 	return isValidMethod
 }

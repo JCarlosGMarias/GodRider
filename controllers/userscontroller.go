@@ -10,7 +10,7 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{"POST"}) {
+	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
 		var userReq requests.UserRequest
 		helpers.ParseBody(r.Body, &userReq)
 

@@ -19,7 +19,28 @@ var UserProviderSrv = UserProviderService{
 	userProviderInfrastructure: infrastructures.UserProviderDb,
 }
 
-func (service *UserProviderService) AddSuscription(request *requests.UserProviderRequest) error {
+func (service *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
+	model := parseUserProviderRequestToUserProvider(request)
+	model.IsActive = 1
+
+	err := service.userProviderInfrastructure.InsertSingle(&model)
+	if err == nil {
+		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
+	}
+	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to add suscription to provider!"}
+}
+
+func (service *UserProviderService) UpdateConnection(request *requests.UserProviderRequest) error {
+	model := parseUserProviderRequestToUserProvider(request)
+
+	err := service.userProviderInfrastructure.UpdateSingle(&model)
+	if err == nil {
+		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
+	}
+	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to update suscription to provider!"}
+}
+
+func parseUserProviderRequestToUserProvider(request *requests.UserProviderRequest) models.UserProvider {
 	model := models.UserProvider{
 		UserId:     request.UserId,
 		ProviderId: request.ProviderId,
@@ -29,18 +50,5 @@ func (service *UserProviderService) AddSuscription(request *requests.UserProvide
 	} else {
 		model.IsActive = 0
 	}
-
-	err := service.userProviderInfrastructure.InsertSingle(&model)
-	if err == nil {
-		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
-	}
-	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to add suscription to provider!"}
-}
-
-func parseUserProviderToUserProviderResponse(provider *models.Provider) responses.ProviderResponse {
-	return responses.ProviderResponse{
-		ID:      provider.ID,
-		Name:    provider.Name,
-		Contact: provider.Contact,
-	}
+	return model
 }

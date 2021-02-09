@@ -14,7 +14,7 @@ func GetRoutes() map[string]string {
 }
 
 func GetApiUrls(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{"POST"}) {
+	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
 		var apiUrlsRq requests.ApiUrlsRequest
 		helpers.ParseBody(r.Body, &apiUrlsRq)
 

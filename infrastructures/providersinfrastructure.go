@@ -19,27 +19,26 @@ type ProvidersInfrastructure struct {
 var ProvidersDb = ProvidersInfrastructure{}
 
 // GetAllProviders returns all registers from user table and its count as integer
-func (infrastructure *ProvidersInfrastructure) GetAllProviders() ([]models.Provider, int, error) {
-	if infrastructure.isDbUpdated() {
-		return infrastructure.providerDb, infrastructure.rows, nil
+func (istruct *ProvidersInfrastructure) GetAllProviders() ([]models.Provider, int, error) {
+	if istruct.isDbUpdated() {
+		return istruct.providerDb, istruct.rows, nil
 	}
 
-	db, _ := sql.Open("sqlite", "./db/godrider.db")
-	defer db.Close()
-
-	var count int
-	if err := infrastructure.countRegisters(db, &count); err != nil {
-		return nil, 0, err
-	}
-
-	rows, err := db.Query("SELECT * FROM provider;")
-	defer rows.Close()
+	db, err := sql.Open("sqlite", "./db/godrider.db")
 	if err != nil {
 		return nil, 0, err
 	}
+	defer db.Close()
 
-	providerDb := make([]models.Provider, count)
+	rows, err := db.Query("SELECT * FROM provider;")
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	providerDb := make([]models.Provider, 0)
 	toUpdate := false
+	count := 0
 	for rows.Next() {
 		var provider models.Provider
 		err := rows.Scan(&provider.ID, &provider.Name, &provider.Contact)
@@ -48,22 +47,23 @@ func (infrastructure *ProvidersInfrastructure) GetAllProviders() ([]models.Provi
 		}
 
 		providerDb = append(providerDb, provider)
+		count++
 		if !toUpdate {
 			toUpdate = true
 		}
 	}
 
 	if toUpdate {
-		infrastructure.providerDb = providerDb
-		infrastructure.rows = count
-		infrastructure.lastUpdate = time.Now()
+		istruct.providerDb = providerDb
+		istruct.rows = count
+		istruct.lastUpdate = time.Now()
 	}
-	return infrastructure.providerDb, infrastructure.rows, nil
+	return istruct.providerDb, istruct.rows, nil
 }
 
-func (infrastructure *ProvidersInfrastructure) GetSingleProviderById(id int) (models.Provider, error) {
-	if infrastructure.isDbUpdated() {
-		for _, provider := range infrastructure.providerDb {
+func (istruct *ProvidersInfrastructure) GetSingleProviderById(id int) (models.Provider, error) {
+	if istruct.isDbUpdated() {
+		for _, provider := range istruct.providerDb {
 			if id == provider.ID {
 				return provider, nil
 			}
@@ -71,29 +71,34 @@ func (infrastructure *ProvidersInfrastructure) GetSingleProviderById(id int) (mo
 		return models.Provider{}, fmt.Errorf("Provider with ID %d not found.", id)
 	}
 
-	db, _ := sql.Open("sqlite", "./db/godrider.db")
-	defer db.Close()
-
-	statement, _ := db.Prepare("SELECT * FROM provider WHERE ID = ?;")
-	row := statement.QueryRow(id)
-
-	var provider models.Provider
-	err := row.Scan(&provider.ID, &provider.Name, &provider.Contact)
+	db, err := sql.Open("sqlite", "./db/godrider.db")
 	if err != nil {
 		return models.Provider{}, err
 	}
-	return provider, nil
+	defer db.Close()
+
+	statement, err := db.Prepare("SELECT * FROM provider WHERE ID = ?;")
+	if err != nil {
+		return models.Provider{}, err
+	}
+	defer statement.Close()
+
+	row := statement.QueryRow(id)
+
+	var provider models.Provider
+	err = row.Scan(&provider.ID, &provider.Name, &provider.Contact)
+	if err == nil {
+		return provider, nil
+	}
+	return models.Provider{}, err
 }
 
-func (infrastructure *ProvidersInfrastructure) isDbUpdated() bool {
-	isProviderDbSet := infrastructure.rows > 0
-	timeNow := time.Now().Unix()
-	lastUpdate := infrastructure.lastUpdate.Unix()
-	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
-	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
+func (istruct *ProvidersInfrastructure) isDbUpdated() bool {
+	isProviderDbSet := istruct.rows > 0
+	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
 	return isProviderDbSet && (timeAfterLastUpdate <= 3600)
 }
 
-func (infrastructure *ProvidersInfrastructure) countRegisters(db *sql.DB, count *int) error {
+func (istruct *ProvidersInfrastructure) countRegisters(db *sql.DB, count *int) error {
 	return db.QueryRow("SELECT COUNT(*) FROM provider;").Scan(count)
 }

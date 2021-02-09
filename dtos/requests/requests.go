@@ -11,8 +11,9 @@ type UserRequest struct {
 }
 
 type ProviderRequest struct {
-	ProviderID int `json:"provider-id"`
 	BaseRequest
+	ProviderID int  `json:"provider-id"`
+	IsActive   bool `json:"is-active"`
 }
 
 type UserProviderRequest struct {

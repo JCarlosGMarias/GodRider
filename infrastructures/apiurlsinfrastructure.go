@@ -19,28 +19,26 @@ type ApiUrlsInfrastructure struct {
 var ApiUrlsDb = ApiUrlsInfrastructure{}
 
 // GetAllUrls returns all registers from apiurls table and its count as integer
-func (infrastructure *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error) {
-	if infrastructure.isDbUpdated() {
-		return infrastructure.apiUrlsDb, infrastructure.rows, nil
+func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error) {
+	if istruct.isDbUpdated() {
+		return istruct.apiUrlsDb, istruct.rows, nil
 	}
 
-	db, _ := sql.Open("sqlite", "./db/godrider.db")
-	defer db.Close()
-
-	var count int
-	if err := infrastructure.countRegisters(db, &count); err != nil {
-		return nil, 0, err
-	}
-
-	rows, err := db.Query("SELECT * FROM apiurls;")
-	defer rows.Close()
-
+	db, err := sql.Open("sqlite", "./db/godrider.db")
 	if err != nil {
 		return nil, 0, err
 	}
+	defer db.Close()
 
-	apiUrlDb := make([]models.ApiUrl, count)
+	rows, err := db.Query("SELECT * FROM apiurls;")
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	apiUrlDb := make([]models.ApiUrl, 0)
 	toUpdate := false
+	count := 0
 	for rows.Next() {
 		var apiUrl models.ApiUrl
 		if err := rows.Scan(&apiUrl.Key, &apiUrl.Url); err != nil {
@@ -48,22 +46,23 @@ func (infrastructure *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int,
 		}
 
 		apiUrlDb = append(apiUrlDb, apiUrl)
+		count++
 		if !toUpdate {
 			toUpdate = true
 		}
 	}
 
 	if toUpdate {
-		infrastructure.apiUrlsDb = apiUrlDb
-		infrastructure.rows = count
-		infrastructure.lastUpdate = time.Now()
+		istruct.apiUrlsDb = apiUrlDb
+		istruct.rows = count
+		istruct.lastUpdate = time.Now()
 	}
-	return infrastructure.apiUrlsDb, infrastructure.rows, nil
+	return istruct.apiUrlsDb, istruct.rows, nil
 }
 
-func (infrastructure *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.ApiUrl, error) {
-	if infrastructure.isDbUpdated() {
-		for _, apiUrl := range infrastructure.apiUrlsDb {
+func (istruct *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.ApiUrl, error) {
+	if istruct.isDbUpdated() {
+		for _, apiUrl := range istruct.apiUrlsDb {
 			if key == apiUrl.Key {
 				return apiUrl, nil
 			}
@@ -71,29 +70,34 @@ func (infrastructure *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.Ap
 		return models.ApiUrl{}, fmt.Errorf("API Url with key '%s' not found.", key)
 	}
 
-	db, _ := sql.Open("sqlite", "./db/godrider.db")
+	db, err := sql.Open("sqlite", "./db/godrider.db")
+	if err != nil {
+		return models.ApiUrl{}, err
+	}
 	defer db.Close()
 
-	statement, _ := db.Prepare("SELECT * FROM apiurls WHERE Key = ?;")
+	statement, err := db.Prepare("SELECT * FROM apiurls WHERE Key = ?;")
+	if err != nil {
+		return models.ApiUrl{}, err
+	}
+	defer statement.Close()
+
 	row := statement.QueryRow(key)
 
 	var apiUrl models.ApiUrl
-	if err := row.Scan(&apiUrl.Key, &apiUrl.Url); err != nil {
-		return models.ApiUrl{}, err
+	err = row.Scan(&apiUrl.Key, &apiUrl.Url)
+	if err == nil {
+		return apiUrl, nil
 	}
-
-	return apiUrl, nil
+	return models.ApiUrl{}, err
 }
 
-func (infrastructure *ApiUrlsInfrastructure) isDbUpdated() bool {
-	isApiUrlsDbSet := infrastructure.rows > 0
-	timeNow := time.Now().Unix()
-	lastUpdate := infrastructure.lastUpdate.Unix()
-	timeAfterLastUpdate := time.Now().Unix() - infrastructure.lastUpdate.Unix()
-	fmt.Printf("Now (%d) - Last Update (%d) = %d\n", timeNow, lastUpdate, timeAfterLastUpdate)
+func (istruct *ApiUrlsInfrastructure) isDbUpdated() bool {
+	isApiUrlsDbSet := istruct.rows > 0
+	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
 	return isApiUrlsDbSet && (timeAfterLastUpdate <= 3600)
 }
 
-func (infrastructure *ApiUrlsInfrastructure) countRegisters(db *sql.DB, count *int) error {
+func (istruct *ApiUrlsInfrastructure) countRegisters(db *sql.DB, count *int) error {
 	return db.QueryRow("SELECT COUNT(*) FROM apiurls;").Scan(count)
 }

@@ -21,10 +21,9 @@ INSERT INTO provider (name, contact) VALUES ('Balloon', 'ballooncorp@evil.death'
 INSERT INTO provider (name, contact) VALUES ('PanzerChomps', 'panzercorp@evil.death');
 INSERT INTO provider (name, contact) VALUES ('SimplyDelight', 'simplydelightcorp@evil.death');
 INSERT INTO provider (name, contact) VALUES ('Nom', 'nomcorp@evil.death');
-INSERT INTO apiurls VALUES ('LoginUrl', '/api/Login');
-INSERT INTO apiurls VALUES ('GetApiUrlsUrl', '/api/GetApiUrls');
-INSERT INTO apiurls VALUES ('GetProvidersUrl', '/api/GetProviders');
-INSERT INTO apiurls VALUES ('SubscribeToProviderUrl', '/api/SubscribeToProvider');
-INSERT INTO apiurls VALUES ('UnsubscribeFromProviderUrl', '/api/UnsubscribeFromProvider');
-INSERT INTO apiurls VALUES ('GetOrdersUrl', '/api/GetOrders');
+INSERT INTO apiurls VALUES ('LoginUrl', '/api/users/Login');
+INSERT INTO apiurls VALUES ('GetApiUrlsUrl', '/api/config/GetApiUrls');
+INSERT INTO apiurls VALUES ('GetProvidersUrl', '/api/providers/Get');
+INSERT INTO apiurls VALUES ('ConnectToProviderUrl', '/api/providers/Connect');
+INSERT INTO apiurls VALUES ('GetOrdersUrl', '/api/orders/Get');
 INSERT INTO apiurls VALUES ('AssignOrderUrl', '/api/AssignOrder');

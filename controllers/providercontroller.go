@@ -10,7 +10,7 @@ import (
 )
 
 func GetProviders(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{"POST"}) {
+	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
 
@@ -20,8 +20,8 @@ func GetProviders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SubscribeToProvider(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{"POST"}) {
+func ConnectToProvider(w http.ResponseWriter, r *http.Request) {
+	if helpers.IsValidMethod(w, r, []string{http.MethodPost, http.MethodPut}) {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
 
@@ -31,11 +31,16 @@ func SubscribeToProvider(w http.ResponseWriter, r *http.Request) {
 			request := requests.UserProviderRequest{
 				UserId:     user.ID,
 				ProviderId: providerRq.ProviderID,
-				IsActive:   true,
+				IsActive:   providerRq.IsActive,
 			}
 
-			err := services.UserProviderSrv.AddSuscription(&request)
-			json.NewEncoder(w).Encode(err)
+			if r.Method == http.MethodPost {
+				err := services.UserProviderSrv.AddConnection(&request)
+				json.NewEncoder(w).Encode(err)
+			} else if r.Method == http.MethodPut {
+				err := services.UserProviderSrv.UpdateConnection(&request)
+				json.NewEncoder(w).Encode(err)
+			}
 		}
 	}
 }
