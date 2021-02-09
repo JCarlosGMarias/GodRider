@@ -30,30 +30,36 @@ func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error)
 	}
 	defer db.Close()
 
+	var count int
+	if err := istruct.countRegisters(db, &count); err != nil {
+		return nil, 0, err
+	}
+
 	rows, err := db.Query("SELECT * FROM apiurls;")
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 
-	apiUrlDb := make([]models.ApiUrl, 0)
+	apiUrls := make([]models.ApiUrl, count)
 	toUpdate := false
-	count := 0
-	for rows.Next() {
-		var apiUrl models.ApiUrl
+	for index, apiUrl := range apiUrls {
+		if !rows.Next() {
+			break
+		}
+
 		if err := rows.Scan(&apiUrl.Key, &apiUrl.Url); err != nil {
 			return nil, 0, err
 		}
 
-		apiUrlDb = append(apiUrlDb, apiUrl)
-		count++
+		apiUrls[index] = apiUrl
 		if !toUpdate {
 			toUpdate = true
 		}
 	}
 
 	if toUpdate {
-		istruct.apiUrlsDb = apiUrlDb
+		istruct.apiUrlsDb = apiUrls
 		istruct.rows = count
 		istruct.lastUpdate = time.Now()
 	}

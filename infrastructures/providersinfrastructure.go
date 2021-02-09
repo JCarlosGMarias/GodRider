@@ -30,31 +30,37 @@ func (istruct *ProvidersInfrastructure) GetAllProviders() ([]models.Provider, in
 	}
 	defer db.Close()
 
+	var count int
+	if err := istruct.countRegisters(db, &count); err != nil {
+		return nil, 0, err
+	}
+
 	rows, err := db.Query("SELECT * FROM provider;")
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 
-	providerDb := make([]models.Provider, 0)
+	providers := make([]models.Provider, count)
 	toUpdate := false
-	count := 0
-	for rows.Next() {
-		var provider models.Provider
+	for index, provider := range providers {
+		if !rows.Next() {
+			break
+		}
+
 		err := rows.Scan(&provider.ID, &provider.Name, &provider.Contact)
 		if err != nil {
 			return nil, 0, err
 		}
 
-		providerDb = append(providerDb, provider)
-		count++
+		providers[index] = provider
 		if !toUpdate {
 			toUpdate = true
 		}
 	}
 
 	if toUpdate {
-		istruct.providerDb = providerDb
+		istruct.providerDb = providers
 		istruct.rows = count
 		istruct.lastUpdate = time.Now()
 	}

@@ -30,31 +30,37 @@ func (istruct *UsersInfrastructure) GetAllUsers() ([]models.User, int, error) {
 	}
 	defer db.Close()
 
+	var count int
+	if err := istruct.countRegisters(db, &count); err != nil {
+		return nil, 0, err
+	}
+
 	rows, err := db.Query("SELECT * FROM user;")
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 
-	userDb := make([]models.User, 0)
+	users := make([]models.User, count)
 	toUpdate := false
-	count := 0
-	for rows.Next() {
-		var user models.User
+	for index, user := range users {
+		if !rows.Next() {
+			break
+		}
+
 		err := rows.Scan(&user.ID, &user.Token, &user.User, &user.Password, &user.Name, &user.Surname, &user.Email, &user.Phone, &user.Level)
 		if err != nil {
 			return nil, 0, err
 		}
 
-		userDb = append(userDb, user)
-		count++
+		users[index] = user
 		if !toUpdate {
 			toUpdate = true
 		}
 	}
 
 	if toUpdate {
-		istruct.userDb = userDb
+		istruct.userDb = users
 		istruct.rows = count
 		istruct.lastUpdate = time.Now()
 	}

@@ -71,10 +71,9 @@ func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.Use
 		return fmt.Errorf("No rows updated!")
 	}
 
-	for _, row := range istruct.userProviderDb {
+	for index, row := range istruct.userProviderDb {
 		if row.UserId == userProvider.UserId && row.ProviderId == userProvider.ProviderId {
-			localUpdate := &row
-			localUpdate.IsActive = userProvider.IsActive
+			istruct.userProviderDb[index].IsActive = userProvider.IsActive
 			break
 		}
 	}
