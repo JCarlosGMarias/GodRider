@@ -15,6 +15,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		helpers.ParseBody(r.Body, &userReq)
 
 		user, errorRs := services.UserSrv.GetUserByCredentials(&userReq)
+		w.Header().Set("Content-Type", "application/json")
 		if errorRs == nil {
 			json.NewEncoder(w).Encode(user)
 		} else {

@@ -1,11 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"godrider/dtos/requests"
 	"godrider/dtos/responses"
 	"godrider/infrastructures"
 	"godrider/webclients"
 	"godrider/webclients/webclientmodels"
+	"log"
 )
 
 type OrderService struct {
@@ -37,8 +39,10 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 
 		webClient, err := service.factory.GetClient(clientData)
 		if err != nil {
-			err = &responses.ErrorResponse{Code: responses.WEBSERVICE_CONNECTION_FAILURE, Message: "Unable to recover orders from client!"}
-			return make([]responses.OrderResponse, 0)
+			message := fmt.Sprintf("Unable to recover orders from client with ID %d!", clientData.ProviderID)
+			err = &responses.ErrorResponse{Code: responses.WEBSERVICE_CONNECTION_FAILURE, Message: message}
+			log.Print(err)
+			continue
 		}
 
 		orders, _ := webClient.GetOrders()

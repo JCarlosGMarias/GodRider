@@ -15,6 +15,7 @@ func GetProviders(w http.ResponseWriter, r *http.Request) {
 		helpers.ParseBody(r.Body, &providerRq)
 
 		if helpers.IsValidToken(w, r, providerRq.Token) {
+			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(services.ProviderSrv.GetAllProviders())
 		}
 	}
@@ -34,13 +35,14 @@ func ConnectToProvider(w http.ResponseWriter, r *http.Request) {
 				IsActive:   providerRq.IsActive,
 			}
 
+			var err error
 			if r.Method == http.MethodPost {
-				err := services.UserProviderSrv.AddConnection(&request)
-				json.NewEncoder(w).Encode(err)
+				err = services.UserProviderSrv.AddConnection(&request)
 			} else if r.Method == http.MethodPut {
-				err := services.UserProviderSrv.UpdateConnection(&request)
-				json.NewEncoder(w).Encode(err)
+				err = services.UserProviderSrv.UpdateConnection(&request)
 			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(err)
 		}
 	}
 }

@@ -15,6 +15,7 @@ func GetOrders(w http.ResponseWriter, r *http.Request) {
 		helpers.ParseBody(r.Body, &orderRq)
 
 		if helpers.IsValidToken(w, r, orderRq.Token) {
+			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(services.OrderSrv.GetOrders(&orderRq))
 		}
 	}

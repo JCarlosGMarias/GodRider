@@ -130,18 +130,19 @@ func (istruct *ProvidersInfrastructure) GetManyProvidersByIds(ids []int) ([]mode
 	defer db.Close()
 
 	queryPlaceHolders := make([]string, idsCount)
+	queryArgs := make([]interface{}, idsCount)
 	for i := 0; i < idsCount; i++ {
-		queryPlaceHolders[i] = fmt.Sprint(ids[i])
+		queryPlaceHolders[i] = "?"
+		queryArgs[i] = ids[i]
 	}
-	joined := strings.Join(queryPlaceHolders, ", ")
 
-	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM provider WHERE ID IN (%s);", joined))
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM provider WHERE ID IN (%s);", strings.Join(queryPlaceHolders, ", ")))
 	if err != nil {
 		return make([]models.Provider, 0), err
 	}
 	defer statement.Close()
 
-	rows, err := statement.Query(ids)
+	rows, err := statement.Query(queryArgs...)
 	if err != nil {
 		return make([]models.Provider, 0), err
 	}

@@ -19,6 +19,7 @@ func GetApiUrls(w http.ResponseWriter, r *http.Request) {
 		helpers.ParseBody(r.Body, &apiUrlsRq)
 
 		if helpers.IsValidToken(w, r, apiUrlsRq.Token) {
+			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(services.ConfigSrv.GetApiUrls())
 		}
 	}
