@@ -1,3 +1,4 @@
+// This package groups all DTOs used for incoming API requests
 package requests
 
 type BaseRequest struct {

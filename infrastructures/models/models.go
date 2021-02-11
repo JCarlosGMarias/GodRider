@@ -1,3 +1,4 @@
+// This package groups all datatypes used for interaction between databases and the infrastructure layer
 package models
 
 import "database/sql"

@@ -1,4 +1,4 @@
-// helpers package provides a set of handful functions for presentation layer in terms of requests validation and data mapping
+// This package provides a set of handful functions for presentation layer in terms of requests validation and data mapping
 package helpers
 
 import (
