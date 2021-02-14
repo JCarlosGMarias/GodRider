@@ -10,7 +10,7 @@ import (
 )
 
 func GetRoutes() map[string]string {
-	return services.ConfigSrv.GetApiUrls()
+	return services.ConfigSrv.GetAPIUrls()
 }
 
 func GetApiUrls(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func GetApiUrls(w http.ResponseWriter, r *http.Request) {
 
 		if helpers.IsValidToken(w, r, apiUrlsRq.Token) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(services.ConfigSrv.GetApiUrls())
+			json.NewEncoder(w).Encode(services.ConfigSrv.GetAPIUrls())
 		}
 	}
 }

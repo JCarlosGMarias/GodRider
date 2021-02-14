@@ -6,20 +6,28 @@ import (
 	"time"
 
 	"godrider/infrastructures/models"
-
-	_ "modernc.org/sqlite"
 )
 
-type ApiUrlsInfrastructure struct {
+// APIUrlsInfrastructurer provides an access to many API configurations, for instance, the API endpoints
+type APIUrlsInfrastructurer interface {
+	// GetAllUrls should return all registers from apiurls table and its count as integer
+	GetAllUrls() ([]models.ApiUrl, int, error)
+	// GetSingleURL should return an unique url based on its key
+	GetSingleURL(key string) (models.ApiUrl, error)
+}
+
+// APIUrlsInfrastructure is APIUrlsInfrastructurer's implementation struct
+type APIUrlsInfrastructure struct {
 	apiUrlsDb  []models.ApiUrl
 	rows       int
 	lastUpdate time.Time
 }
 
-var ApiUrlsDb = ApiUrlsInfrastructure{}
+// APIUrlsDb is APIUrlsInfrastructurer's implementation instance
+var APIUrlsDb APIUrlsInfrastructurer = &APIUrlsInfrastructure{}
 
 // GetAllUrls returns all registers from apiurls table and its count as integer
-func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error) {
+func (istruct *APIUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error) {
 	if istruct.isDbUpdated() {
 		return istruct.apiUrlsDb, istruct.rows, nil
 	}
@@ -35,7 +43,7 @@ func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error)
 		return nil, 0, err
 	}
 
-	rows, err := db.Query("SELECT * FROM apiurls;")
+	rows, err := db.Query("SELECT * FROM apiurl;")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -43,16 +51,16 @@ func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error)
 
 	apiUrls := make([]models.ApiUrl, count)
 	toUpdate := false
-	for index, apiUrl := range apiUrls {
+	for index, apiURL := range apiUrls {
 		if !rows.Next() {
 			break
 		}
 
-		if err := rows.Scan(&apiUrl.Key, &apiUrl.Url); err != nil {
+		if err := rows.Scan(&apiURL.Key, &apiURL.Url); err != nil {
 			return nil, 0, err
 		}
 
-		apiUrls[index] = apiUrl
+		apiUrls[index] = apiURL
 		if !toUpdate {
 			toUpdate = true
 		}
@@ -66,14 +74,15 @@ func (istruct *ApiUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error)
 	return istruct.apiUrlsDb, istruct.rows, nil
 }
 
-func (istruct *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.ApiUrl, error) {
+// GetSingleURL returns an unique url based on its key
+func (istruct *APIUrlsInfrastructure) GetSingleURL(key string) (models.ApiUrl, error) {
 	if istruct.isDbUpdated() {
-		for _, apiUrl := range istruct.apiUrlsDb {
-			if key == apiUrl.Key {
-				return apiUrl, nil
+		for _, apiURL := range istruct.apiUrlsDb {
+			if key == apiURL.Key {
+				return apiURL, nil
 			}
 		}
-		return models.ApiUrl{}, fmt.Errorf("API Url with key '%s' not found.", key)
+		return models.ApiUrl{}, fmt.Errorf("API Url with key '%s' not found", key)
 	}
 
 	db, err := sql.Open("sqlite", "./db/godrider.db")
@@ -82,7 +91,7 @@ func (istruct *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.ApiUrl, e
 	}
 	defer db.Close()
 
-	statement, err := db.Prepare("SELECT * FROM apiurls WHERE Key = ?;")
+	statement, err := db.Prepare("SELECT * FROM apiurl WHERE Key = ?;")
 	if err != nil {
 		return models.ApiUrl{}, err
 	}
@@ -90,20 +99,20 @@ func (istruct *ApiUrlsInfrastructure) GetSingleUrl(key string) (models.ApiUrl, e
 
 	row := statement.QueryRow(key)
 
-	var apiUrl models.ApiUrl
-	err = row.Scan(&apiUrl.Key, &apiUrl.Url)
+	var apiURL models.ApiUrl
+	err = row.Scan(&apiURL.Key, &apiURL.Url)
 	if err == nil {
-		return apiUrl, nil
+		return apiURL, nil
 	}
 	return models.ApiUrl{}, err
 }
 
-func (istruct *ApiUrlsInfrastructure) isDbUpdated() bool {
-	isApiUrlsDbSet := istruct.rows > 0
+func (istruct *APIUrlsInfrastructure) isDbUpdated() bool {
+	isAPIUrlsDbSet := istruct.rows > 0
 	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
-	return isApiUrlsDbSet && (timeAfterLastUpdate <= 3600)
+	return isAPIUrlsDbSet && (timeAfterLastUpdate <= 3600)
 }
 
-func (istruct *ApiUrlsInfrastructure) countRegisters(db *sql.DB, count *int) error {
-	return db.QueryRow("SELECT COUNT(*) FROM apiurls;").Scan(count)
+func (istruct *APIUrlsInfrastructure) countRegisters(db *sql.DB, count *int) error {
+	return db.QueryRow("SELECT COUNT(*) FROM apiurl;").Scan(count)
 }
