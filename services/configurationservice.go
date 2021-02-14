@@ -15,9 +15,6 @@ type ConfigurationService struct {
 	apiUrlsInfrastructure infrastructures.APIUrlsInfrastructurer
 }
 
-// ConfigSrv is ConfigurationServicer's implementation instance
-var ConfigSrv ConfigurationServicer = &ConfigurationService{apiUrlsInfrastructure: infrastructures.APIUrlsDb}
-
 // GetAPIUrls returns an updated endpoint list for all API methods as k-v strings map.
 func (service *ConfigurationService) GetAPIUrls() map[string]string {
 	apiUrls, _, _ := service.apiUrlsInfrastructure.GetAllUrls()
@@ -27,4 +24,11 @@ func (service *ConfigurationService) GetAPIUrls() map[string]string {
 		result[apiURL.Key] = apiURL.Url
 	}
 	return result
+}
+
+// APIUrlsInfrastructure setter
+func (service *ConfigurationService) APIUrlsInfrastructure(istruct *infrastructures.APIUrlsInfrastructurer) {
+	if service.apiUrlsInfrastructure == nil {
+		service.apiUrlsInfrastructure = *istruct
+	}
 }

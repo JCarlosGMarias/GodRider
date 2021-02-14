@@ -23,9 +23,6 @@ type APIUrlsInfrastructure struct {
 	lastUpdate time.Time
 }
 
-// APIUrlsDb is APIUrlsInfrastructurer's implementation instance
-var APIUrlsDb APIUrlsInfrastructurer = &APIUrlsInfrastructure{}
-
 // GetAllUrls returns all registers from apiurls table and its count as integer
 func (istruct *APIUrlsInfrastructure) GetAllUrls() ([]models.ApiUrl, int, error) {
 	if istruct.isDbUpdated() {
