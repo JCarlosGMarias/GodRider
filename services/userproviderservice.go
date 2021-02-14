@@ -7,14 +7,23 @@ import (
 	"godrider/infrastructures/models"
 )
 
+// UserProviderServicer is the userprovider's service layer
+type UserProviderServicer interface {
+	// AddConnection should create a new userprovider connection or return a custom service error
+	AddConnection(request *requests.UserProviderRequest) error
+	// UpdateConnection should change an existent connection's active field successfully or return a custom error
+	UpdateConnection(request *requests.UserProviderRequest) error
+}
+
+// UserProviderService is UserProviderServicer's implementation struct
 type UserProviderService struct {
-	userProviderInfrastructure infrastructures.UserProviderInfrastructure
+	userProviderInfrastructure infrastructures.UserProviderInfrastructurer
 }
 
-var UserProviderSrv = UserProviderService{
-	userProviderInfrastructure: infrastructures.UserProviderDb,
-}
+// UserProviderSrv is UserProviderServicer's implementation instance
+var UserProviderSrv UserProviderServicer = &UserProviderService{userProviderInfrastructure: infrastructures.UserProviderDb}
 
+// AddConnection creates a new userprovider connection or returns a custom service error
 func (service *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
 	model := parseUserProviderRequestToUserProvider(request)
 	model.IsActive = 1
@@ -26,6 +35,7 @@ func (service *UserProviderService) AddConnection(request *requests.UserProvider
 	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to add suscription to provider!"}
 }
 
+// UpdateConnection changes an existent connection's active field successfully or returns a custom error
 func (service *UserProviderService) UpdateConnection(request *requests.UserProviderRequest) error {
 	model := parseUserProviderRequestToUserProvider(request)
 

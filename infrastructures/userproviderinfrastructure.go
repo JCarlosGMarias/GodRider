@@ -6,10 +6,17 @@ import (
 	"time"
 
 	"godrider/infrastructures/models"
-
-	_ "modernc.org/sqlite"
 )
 
+// UserProviderInfrastructurer provides edition access to the userprovider's table for rlations between users and providers
+type UserProviderInfrastructurer interface {
+	// InsertSingle should create a new connection row
+	InsertSingle(userProvider *models.UserProvider) error
+	// UpdateSingle should edit a connection's active field; its used to activate/deactivate an userprovider connection
+	UpdateSingle(userProvider *models.UserProvider) error
+}
+
+// UserProviderInfrastructure is UserProviderInfrastructurer's implementation struct
 type UserProviderInfrastructure struct {
 	userProviderDb []models.UserProvider
 	tableName      string
@@ -17,8 +24,10 @@ type UserProviderInfrastructure struct {
 	lastUpdate     time.Time
 }
 
-var UserProviderDb = UserProviderInfrastructure{tableName: "userprovider"}
+// UserProviderDb is UserProviderInfrastructurer's implementation instance
+var UserProviderDb UserProviderInfrastructurer = &UserProviderInfrastructure{tableName: "userprovider"}
 
+// InsertSingle creates a new connection row
 func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.UserProvider) error {
 	db, err := sql.Open("sqlite", "./db/godrider.db")
 	if err != nil {
@@ -39,7 +48,7 @@ func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.Use
 
 	count, err := result.RowsAffected()
 	if err != nil || count == 0 {
-		return fmt.Errorf("No new rows created!")
+		return fmt.Errorf("No new rows created")
 	}
 
 	istruct.userProviderDb = append(istruct.userProviderDb, *userProvider)
@@ -48,6 +57,7 @@ func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.Use
 	return nil
 }
 
+// UpdateSingle edit a connection's active field; its used to activate/deactivate an userprovider connection
 func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.UserProvider) error {
 	db, err := sql.Open("sqlite", "./db/godrider.db")
 	if err != nil {
@@ -68,7 +78,7 @@ func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.Use
 
 	count, err := result.RowsAffected()
 	if err != nil || count == 0 {
-		return fmt.Errorf("No rows updated!")
+		return fmt.Errorf("No rows updated")
 	}
 
 	for index, row := range istruct.userProviderDb {
