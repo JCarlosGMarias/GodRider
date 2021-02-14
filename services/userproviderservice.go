@@ -8,14 +8,10 @@ import (
 )
 
 type UserProviderService struct {
-	usersInfrastructure        infrastructures.UsersInfrastructure
-	providerInfrastructure     infrastructures.ProvidersInfrastructure
 	userProviderInfrastructure infrastructures.UserProviderInfrastructure
 }
 
 var UserProviderSrv = UserProviderService{
-	usersInfrastructure:        infrastructures.UsersDb,
-	providerInfrastructure:     infrastructures.ProvidersDb,
 	userProviderInfrastructure: infrastructures.UserProviderDb,
 }
 
