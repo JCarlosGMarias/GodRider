@@ -7,14 +7,23 @@ import (
 	"godrider/infrastructures/models"
 )
 
+// ProviderServicer is the provider's service layer
+type ProviderServicer interface {
+	// GetAllProviders should return all provider's models in a ProviderResponse format
+	GetAllProviders() []responses.ProviderResponse
+	// GetProviderByID should return an unique provider model by its ID
+	GetProviderByID(request *requests.ProviderRequest) (responses.ProviderResponse, error)
+}
+
+// ProviderService is ProviderServicer's implementation struct
 type ProviderService struct {
-	providerInfrastructure infrastructures.ProvidersInfrastructure
+	providerInfrastructure infrastructures.ProviderInfrastructurer
 }
 
-var ProviderSrv = ProviderService{
-	providerInfrastructure: infrastructures.ProvidersDb,
-}
+// ProviderSrv is ProviderServicer's implementation instance
+var ProviderSrv ProviderServicer = &ProviderService{providerInfrastructure: infrastructures.ProviderDb}
 
+// GetAllProviders returns all provider's models in a ProviderResponse format
 func (service *ProviderService) GetAllProviders() []responses.ProviderResponse {
 	providers, count, _ := service.providerInfrastructure.GetAllProviders()
 
@@ -27,8 +36,9 @@ func (service *ProviderService) GetAllProviders() []responses.ProviderResponse {
 	return providersResponses
 }
 
-func (service *ProviderService) GetProviderById(request *requests.ProviderRequest) (responses.ProviderResponse, error) {
-	provider, err := service.providerInfrastructure.GetSingleProviderById(request.ProviderID)
+// GetProviderByID returns an unique provider model by its ID
+func (service *ProviderService) GetProviderByID(request *requests.ProviderRequest) (responses.ProviderResponse, error) {
+	provider, err := service.providerInfrastructure.GetSingleProviderByID(request.ProviderID)
 	if err != nil || provider.ID == 0 {
 		return responses.ProviderResponse{}, &responses.ErrorResponse{Code: responses.REGISTER_NOT_FOUND, Message: "Provider not found!"}
 	}

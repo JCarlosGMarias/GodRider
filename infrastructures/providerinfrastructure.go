@@ -7,20 +7,30 @@ import (
 	"time"
 
 	"godrider/infrastructures/models"
-
-	_ "modernc.org/sqlite"
 )
 
-type ProvidersInfrastructure struct {
+// ProviderInfrastructurer provides access to all registered webservices' providers
+type ProviderInfrastructurer interface {
+	// GetAllProviders should return all registers from provider table and its count as integer
+	GetAllProviders() ([]models.Provider, int, error)
+	// GetSingleProviderByID should return an unique provider model by its ID
+	GetSingleProviderByID(id int) (models.Provider, error)
+	// GetManyProvidersByIds should return a slice with provider's models by a slice of IDs
+	GetManyProvidersByIds(ids []int) ([]models.Provider, error)
+}
+
+// ProviderInfrastructure is ProvidersInfrastructurer' implementation struct
+type ProviderInfrastructure struct {
 	providerDb []models.Provider
 	rows       int
 	lastUpdate time.Time
 }
 
-var ProvidersDb = ProvidersInfrastructure{}
+// ProviderDb is ProvidersInfrastructurer' implementation instance
+var ProviderDb ProviderInfrastructurer = &ProviderInfrastructure{}
 
 // GetAllProviders returns all registers from user table and its count as integer
-func (istruct *ProvidersInfrastructure) GetAllProviders() ([]models.Provider, int, error) {
+func (istruct *ProviderInfrastructure) GetAllProviders() ([]models.Provider, int, error) {
 	if istruct.isDbUpdated() {
 		return istruct.providerDb, istruct.rows, nil
 	}
@@ -68,14 +78,15 @@ func (istruct *ProvidersInfrastructure) GetAllProviders() ([]models.Provider, in
 	return istruct.providerDb, istruct.rows, nil
 }
 
-func (istruct *ProvidersInfrastructure) GetSingleProviderById(id int) (models.Provider, error) {
+// GetSingleProviderByID returns an unique provider model by its ID
+func (istruct *ProviderInfrastructure) GetSingleProviderByID(id int) (models.Provider, error) {
 	if istruct.isDbUpdated() {
 		for _, provider := range istruct.providerDb {
 			if id == provider.ID {
 				return provider, nil
 			}
 		}
-		return models.Provider{}, fmt.Errorf("Provider with ID %d not found.", id)
+		return models.Provider{}, fmt.Errorf("Provider with ID %d not found", id)
 	}
 
 	db, err := sql.Open("sqlite", "./db/godrider.db")
@@ -100,10 +111,11 @@ func (istruct *ProvidersInfrastructure) GetSingleProviderById(id int) (models.Pr
 	return models.Provider{}, err
 }
 
-func (istruct *ProvidersInfrastructure) GetManyProvidersByIds(ids []int) ([]models.Provider, error) {
+// GetManyProvidersByIds returns a slice with provider's models by a slice of IDs
+func (istruct *ProviderInfrastructure) GetManyProvidersByIds(ids []int) ([]models.Provider, error) {
 	idsCount := len(ids)
 	if idsCount <= 1 {
-		provider, err := istruct.GetSingleProviderById(ids[0])
+		provider, err := istruct.GetSingleProviderByID(ids[0])
 		return []models.Provider{provider}, err
 	}
 
@@ -118,7 +130,7 @@ func (istruct *ProvidersInfrastructure) GetManyProvidersByIds(ids []int) ([]mode
 		}
 
 		if len(providers) > 0 {
-			return providers, fmt.Errorf("No providers found.")
+			return providers, fmt.Errorf("No providers found")
 		}
 		return providers, nil
 	}
@@ -164,12 +176,12 @@ func (istruct *ProvidersInfrastructure) GetManyProvidersByIds(ids []int) ([]mode
 	return providers, nil
 }
 
-func (istruct *ProvidersInfrastructure) isDbUpdated() bool {
+func (istruct *ProviderInfrastructure) isDbUpdated() bool {
 	isProviderDbSet := istruct.rows > 0
 	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
 	return isProviderDbSet && (timeAfterLastUpdate <= 3600)
 }
 
-func (istruct *ProvidersInfrastructure) countRegisters(db *sql.DB, count *int) error {
+func (istruct *ProviderInfrastructure) countRegisters(db *sql.DB, count *int) error {
 	return db.QueryRow("SELECT COUNT(*) FROM provider;").Scan(count)
 }

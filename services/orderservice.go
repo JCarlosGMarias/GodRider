@@ -11,12 +11,12 @@ import (
 )
 
 type OrderService struct {
-	providerInfrastructure infrastructures.ProvidersInfrastructure
+	providerInfrastructure infrastructures.ProviderInfrastructurer
 	factory                webclients.WebClientFactory
 }
 
 var OrderSrv = OrderService{
-	providerInfrastructure: infrastructures.ProvidersDb,
+	providerInfrastructure: infrastructures.ProviderDb,
 	factory:                webclients.ClientFactory,
 }
 
