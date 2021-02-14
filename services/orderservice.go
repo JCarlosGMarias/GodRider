@@ -10,25 +10,33 @@ import (
 	"log"
 )
 
+// OrderServicer provides access to get customer's orders and edit its status
+type OrderServicer interface {
+	// GetOrders should identify the requested providers and return a slice with all available customer's orders
+	GetOrders(request *requests.OrderRequest) []responses.OrderResponse
+}
+
+// OrderService is OrderServicer's implementation struct
 type OrderService struct {
 	providerInfrastructure infrastructures.ProviderInfrastructurer
 	factory                webclients.WebClientFactory
 }
 
+// OrderSrv is OrderServicer's implementation instance
 var OrderSrv = OrderService{
 	providerInfrastructure: infrastructures.ProviderDb,
 	factory:                webclients.ClientFactory,
 }
 
+// GetOrders identifies the requested providers and returns a slice with all available customer's orders
 func (service *OrderService) GetOrders(request *requests.OrderRequest) []responses.OrderResponse {
-	orderResults := make([]responses.OrderResponse, 0)
-
 	providers, err := service.providerInfrastructure.GetManyProvidersByIds(request.ProviderIDs)
 	if err != nil {
 		err = &responses.ErrorResponse{Code: responses.REGISTER_NOT_FOUND, Message: "Unable to recover orders from client!"}
-		return make([]responses.OrderResponse, 0)
+		return []responses.OrderResponse{}
 	}
 
+	orderResults := make([]responses.OrderResponse, 0)
 	for _, provider := range providers {
 		clientData := &webclientmodels.ClientData{
 			ProviderID: provider.ID,
@@ -46,7 +54,6 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 		}
 
 		orders, _ := webClient.GetOrders()
-
 		for _, order := range orders {
 			orderResults = append(orderResults, service.parseOrderToOrderResponse(&order))
 		}
