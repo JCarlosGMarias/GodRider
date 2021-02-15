@@ -24,9 +24,6 @@ type UserProviderInfrastructure struct {
 	lastUpdate     time.Time
 }
 
-// UserProviderDb is UserProviderInfrastructurer's implementation instance
-var UserProviderDb UserProviderInfrastructurer = &UserProviderInfrastructure{tableName: "userprovider"}
-
 // InsertSingle creates a new connection row
 func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.UserProvider) error {
 	db, err := sql.Open("sqlite", "./db/godrider.db")
@@ -90,4 +87,11 @@ func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.Use
 
 	istruct.lastUpdate = time.Now()
 	return nil
+}
+
+// TableName setter
+func (istruct *UserProviderInfrastructure) TableName(name string) {
+	if istruct.tableName == "" {
+		istruct.tableName = name
+	}
 }

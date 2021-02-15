@@ -13,22 +13,33 @@ import (
 var (
 	// ConfigCtrl groups all config methods
 	ConfigCtrl controllers.ConfigurationControllerer
+	// ProviderCtrl groups all provider main methods
+	ProviderCtrl controllers.ProviderControllerer
 )
 
 func init() {
 	// Infrastructures
 	apiUrlsIstruct := &infrastructures.APIUrlsInfrastructure{}
 	var apiUrlsIstructr infrastructures.APIUrlsInfrastructurer = apiUrlsIstruct
+	userProviderIstruct := &infrastructures.UserProviderInfrastructure{}
+	userProviderIstruct.TableName("userprovider")
+	var userProviderIstructr infrastructures.UserProviderInfrastructurer = userProviderIstruct
 
 	// Services
 	configSrv := &services.ConfigurationService{}
 	configSrv.APIUrlsInfrastructure(&apiUrlsIstructr)
 	var configSrvr services.ConfigurationServicer = configSrv
+	userProviderSrv := &services.UserProviderService{}
+	userProviderSrv.UserProviderInfrastructure(&userProviderIstructr)
+	var userProviderSrvr services.UserProviderServicer = userProviderSrv
 
 	// Controllers
-	configCtrl := controllers.ConfigurationController{}
+	configCtrl := &controllers.ConfigurationController{}
 	configCtrl.ConfigSrv(&configSrvr)
-	ConfigCtrl = &configCtrl
+	ConfigCtrl = configCtrl
+	providerCtrl := &controllers.ProviderController{}
+	providerCtrl.UserProviderSrv(&userProviderSrvr)
+	ProviderCtrl = providerCtrl
 }
 
 func main() {
@@ -39,7 +50,7 @@ func main() {
 	http.HandleFunc(routes["GetApiUrlsUrl"], ConfigCtrl.GetApiUrls)
 	// Providers
 	http.HandleFunc(routes["GetProvidersUrl"], controllers.GetProviders)
-	http.HandleFunc(routes["ConnectToProviderUrl"], controllers.ConnectToProvider)
+	http.HandleFunc(routes["ConnectToProviderUrl"], ProviderCtrl.ConnectToProvider)
 	http.HandleFunc(routes["GetOrdersUrl"], controllers.GetOrders)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

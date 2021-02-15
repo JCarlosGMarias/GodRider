@@ -27,4 +27,4 @@ INSERT INTO apiurl VALUES ('GetApiUrlsUrl', '/api/config/GetApiUrls');
 INSERT INTO apiurl VALUES ('GetProvidersUrl', '/api/providers/Get');
 INSERT INTO apiurl VALUES ('ConnectToProviderUrl', '/api/providers/Connect');
 INSERT INTO apiurl VALUES ('GetOrdersUrl', '/api/orders/Get');
-INSERT INTO apiurl VALUES ('AssignOrderUrl', '/api/AssignOrder');
+INSERT INTO apiurl VALUES ('AssignOrderUrl', '/api/orders/Assign');

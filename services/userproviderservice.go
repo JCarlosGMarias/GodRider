@@ -20,9 +20,6 @@ type UserProviderService struct {
 	userProviderInfrastructure infrastructures.UserProviderInfrastructurer
 }
 
-// UserProviderSrv is UserProviderServicer's implementation instance
-var UserProviderSrv UserProviderServicer = &UserProviderService{userProviderInfrastructure: infrastructures.UserProviderDb}
-
 // AddConnection creates a new userprovider connection or returns a custom service error
 func (service *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
 	model := parseUserProviderRequestToUserProvider(request)
@@ -44,6 +41,13 @@ func (service *UserProviderService) UpdateConnection(request *requests.UserProvi
 		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
 	}
 	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to update suscription to provider!"}
+}
+
+// UserProviderInfrastructure setter
+func (service *UserProviderService) UserProviderInfrastructure(istruct *infrastructures.UserProviderInfrastructurer) {
+	if service.userProviderInfrastructure == nil {
+		service.userProviderInfrastructure = *istruct
+	}
 }
 
 func parseUserProviderRequestToUserProvider(request *requests.UserProviderRequest) models.UserProvider {

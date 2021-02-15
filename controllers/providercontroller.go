@@ -9,6 +9,14 @@ import (
 	"godrider/services"
 )
 
+type ProviderControllerer interface {
+	ConnectToProvider(w http.ResponseWriter, r *http.Request)
+}
+
+type ProviderController struct {
+	userProviderSrv services.UserProviderServicer
+}
+
 func GetProviders(w http.ResponseWriter, r *http.Request) {
 	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
 		var providerRq requests.ProviderRequest
@@ -21,7 +29,7 @@ func GetProviders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ConnectToProvider(w http.ResponseWriter, r *http.Request) {
+func (ctrl *ProviderController) ConnectToProvider(w http.ResponseWriter, r *http.Request) {
 	if helpers.IsValidMethod(w, r, []string{http.MethodPost, http.MethodPut}) {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
@@ -37,12 +45,19 @@ func ConnectToProvider(w http.ResponseWriter, r *http.Request) {
 
 			var err error
 			if r.Method == http.MethodPost {
-				err = services.UserProviderSrv.AddConnection(&request)
+				err = ctrl.userProviderSrv.AddConnection(&request)
 			} else if r.Method == http.MethodPut {
-				err = services.UserProviderSrv.UpdateConnection(&request)
+				err = ctrl.userProviderSrv.UpdateConnection(&request)
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(err)
 		}
+	}
+}
+
+// UserProviderSrv setter
+func (ctrl *ProviderController) UserProviderSrv(srv *services.UserProviderServicer) {
+	if ctrl.userProviderSrv == nil {
+		ctrl.userProviderSrv = *srv
 	}
 }
