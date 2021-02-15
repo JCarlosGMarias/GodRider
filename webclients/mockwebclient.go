@@ -3,6 +3,7 @@ package webclients
 import (
 	"fmt"
 	"godrider/webclients/webclientmodels"
+	"math/rand"
 )
 
 type mockWebClient struct {
@@ -20,13 +21,14 @@ func (client *mockWebClient) Login(data *webclientmodels.ClientData) (bool, erro
 		data.Token = "jhknlfsdv786y3421rhiblyu"
 		return true, nil
 	}
-	return false, fmt.Errorf("Login error: user or password incorrect!")
+	return false, fmt.Errorf("Login error: user or password incorrect")
 }
 
-func (client *mockWebClient) GetOrders() ([]webclientmodels.Order, error) {
+func (client *mockWebClient) GetOrders(c chan []webclientmodels.Order) error {
 	// Here we should make our request to the external webservice and perform
 	// all needed tasks in order to get a proper data response for our calling services...
-	result := []webclientmodels.Order{
+	randomPrice := 10 + rand.Float32()*(100-10)
+	c <- []webclientmodels.Order{
 		{
 			CustomerName:     "Andrew",
 			Business:         "PizzaPlanet",
@@ -34,7 +36,8 @@ func (client *mockWebClient) GetOrders() ([]webclientmodels.Order, error) {
 			ShippingAddress:  "C/Borricondearriba, 10, 1D",
 			ReceptionCoords:  []float32{-27.967917, 153.419083},
 			ShippingCoords:   []float32{30.541639, 47.825444},
-			Amount:           44.85,
+			// Amount:           44.85,
+			Amount: randomPrice,
 			OrderLines: []webclientmodels.OrderLine{
 				{
 					ProductName: "Prosciutto parmigiano pineapple pizza",
@@ -60,5 +63,5 @@ func (client *mockWebClient) GetOrders() ([]webclientmodels.Order, error) {
 			},
 		},
 	}
-	return result, nil
+	return nil
 }

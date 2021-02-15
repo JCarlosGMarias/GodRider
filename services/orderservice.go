@@ -37,6 +37,7 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 	}
 
 	orderResults := make([]responses.OrderResponse, 0)
+	c := make(chan []webclientmodels.Order, len(providers))
 	for _, provider := range providers {
 		clientData := &webclientmodels.ClientData{
 			ProviderID: provider.ID,
@@ -53,11 +54,16 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 			continue
 		}
 
-		orders, _ := webClient.GetOrders()
+		go webClient.GetOrders(c)
+	}
+
+	for i := 0; i < len(providers); i++ {
+		orders := <-c
 		for _, order := range orders {
 			orderResults = append(orderResults, service.parseOrderToOrderResponse(&order))
 		}
 	}
+	close(c)
 
 	return orderResults
 }

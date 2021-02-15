@@ -18,7 +18,7 @@ var ClientFactory = WebClientFactory{
 func (builder *WebClientFactory) GetClient(clientData *webclientmodels.ClientData) (WebClient, error) {
 	client, ok := builder.webClients[clientData.ProviderID]
 	if !ok {
-		return nil, fmt.Errorf("WebClient with ID %d not registered!", clientData.ProviderID)
+		return nil, fmt.Errorf("WebClient with ID %d not registered", clientData.ProviderID)
 	}
 
 	success, err := client.Login(clientData)

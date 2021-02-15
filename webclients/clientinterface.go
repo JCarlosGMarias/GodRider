@@ -2,6 +2,7 @@ package webclients
 
 import "godrider/webclients/webclientmodels"
 
+// WebClient is the interface which hides all implementations of concrete webclients for concrete webservices
 type WebClient interface {
 	// Login defines a method in which we perform a login
 	// attempt to the pertinent external webservice.
@@ -21,5 +22,5 @@ type WebClient interface {
 	// However, a new method signature with filter options is coming,
 	// so this method should be used only when we want the most wide
 	// response.
-	GetOrders() ([]webclientmodels.Order, error)
+	GetOrders(c chan []webclientmodels.Order) error
 }
