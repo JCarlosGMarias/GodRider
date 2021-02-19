@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"godrider/dtos/requests"
@@ -9,17 +8,40 @@ import (
 	"godrider/services"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
+type UserControllerer interface {
+	Login(w http.ResponseWriter, r *http.Request)
+}
+
+type UserController struct {
+	validationSrv services.ValidationServicer
+	userSrv       services.UserServicer
+}
+
+func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
+	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var userReq requests.UserRequest
 		helpers.ParseBody(r.Body, &userReq)
 
-		user, errorRs := services.UserSrv.GetUserByCredentials(&userReq)
-		w.Header().Set("Content-Type", "application/json")
+		user, errorRs := c.userSrv.GetByCredentials(&userReq)
+		e := helpers.SetCommonResponseEncoder(&w)
 		if errorRs == nil {
-			json.NewEncoder(w).Encode(user)
+			e.Encode(user)
 		} else {
-			json.NewEncoder(w).Encode(errorRs)
+			e.Encode(errorRs)
 		}
+	}
+}
+
+// ValidationSrv setter
+func (c *UserController) ValidationSrv(s *services.ValidationServicer) {
+	if c.validationSrv == nil {
+		c.validationSrv = *s
+	}
+}
+
+// UserSrv setter
+func (c *UserController) UserSrv(s *services.UserServicer) {
+	if c.userSrv == nil {
+		c.userSrv = *s
 	}
 }

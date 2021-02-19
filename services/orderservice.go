@@ -19,18 +19,12 @@ type OrderServicer interface {
 // OrderService is OrderServicer's implementation struct
 type OrderService struct {
 	providerInfrastructure infrastructures.ProviderInfrastructurer
-	factory                webclients.WebClientFactory
-}
-
-// OrderSrv is OrderServicer's implementation instance
-var OrderSrv = OrderService{
-	providerInfrastructure: infrastructures.ProviderDb,
-	factory:                webclients.ClientFactory,
+	factory                webclients.WebClientFactorier
 }
 
 // GetOrders identifies the requested providers and returns a slice with all available customer's orders
-func (service *OrderService) GetOrders(request *requests.OrderRequest) []responses.OrderResponse {
-	providers, err := service.providerInfrastructure.GetManyProvidersByIds(request.ProviderIDs)
+func (s *OrderService) GetOrders(request *requests.OrderRequest) []responses.OrderResponse {
+	providers, err := s.providerInfrastructure.GetManyByIds(request.ProviderIDs)
 	if err != nil {
 		err = &responses.ErrorResponse{Code: responses.REGISTER_NOT_FOUND, Message: "Unable to recover orders from client!"}
 		return []responses.OrderResponse{}
@@ -46,7 +40,7 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 			Token:      provider.Contact,
 		}
 
-		webClient, err := service.factory.GetClient(clientData)
+		webClient, err := s.factory.GetClient(clientData)
 		if err != nil {
 			message := fmt.Sprintf("Unable to recover orders from client with ID %d!", clientData.ProviderID)
 			err = &responses.ErrorResponse{Code: responses.WEBSERVICE_CONNECTION_FAILURE, Message: message}
@@ -58,9 +52,12 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 	}
 
 	for i := 0; i < len(providers); i++ {
-		orders := <-c
+		orders, ok := <-c
+		if !ok {
+			break
+		}
 		for _, order := range orders {
-			orderResults = append(orderResults, service.parseOrderToOrderResponse(&order))
+			orderResults = append(orderResults, parseOrderToOrderResponse(&order))
 		}
 	}
 	close(c)
@@ -68,28 +65,42 @@ func (service *OrderService) GetOrders(request *requests.OrderRequest) []respons
 	return orderResults
 }
 
-func (service *OrderService) parseOrderToOrderResponse(order *webclientmodels.Order) responses.OrderResponse {
+// ProviderInfrastructure setter
+func (s *OrderService) ProviderInfrastructure(i *infrastructures.ProviderInfrastructurer) {
+	if s.providerInfrastructure == nil {
+		s.providerInfrastructure = *i
+	}
+}
+
+// Factory setter
+func (s *OrderService) Factory(f *webclients.WebClientFactorier) {
+	if s.factory == nil {
+		s.factory = *f
+	}
+}
+
+func parseOrderToOrderResponse(o *webclientmodels.Order) responses.OrderResponse {
 	response := responses.OrderResponse{
-		CustomerName:     order.CustomerName,
-		Business:         order.Business,
-		ReceptionAddress: order.ReceptionAddress,
-		ShippingAddress:  order.ShippingAddress,
-		ReceptionCoords:  order.ReceptionCoords,
-		ShippingCoords:   order.ShippingCoords,
-		Amount:           order.Amount,
+		CustomerName:     o.CustomerName,
+		Business:         o.Business,
+		ReceptionAddress: o.ReceptionAddress,
+		ShippingAddress:  o.ShippingAddress,
+		ReceptionCoords:  o.ReceptionCoords,
+		ShippingCoords:   o.ShippingCoords,
+		Amount:           o.Amount,
 		OrderLines:       make([]responses.OrderLineResponse, 0),
 	}
 
-	for _, orderLine := range order.OrderLines {
-		response.OrderLines = append(response.OrderLines, service.parseOrderLineToOrderLineResponse(&orderLine))
+	for _, l := range o.OrderLines {
+		response.OrderLines = append(response.OrderLines, parseOrderLineToOrderLineResponse(&l))
 	}
 	return response
 }
 
-func (service *OrderService) parseOrderLineToOrderLineResponse(orderLine *webclientmodels.OrderLine) responses.OrderLineResponse {
+func parseOrderLineToOrderLineResponse(l *webclientmodels.OrderLine) responses.OrderLineResponse {
 	return responses.OrderLineResponse{
-		ProductName: orderLine.ProductName,
-		Price:       orderLine.Price,
-		Quantity:    orderLine.Quantity,
+		ProductName: l.ProductName,
+		Price:       l.Price,
+		Quantity:    l.Quantity,
 	}
 }

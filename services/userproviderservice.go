@@ -21,11 +21,11 @@ type UserProviderService struct {
 }
 
 // AddConnection creates a new userprovider connection or returns a custom service error
-func (service *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
+func (s *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
 	model := parseUserProviderRequestToUserProvider(request)
 	model.IsActive = 1
 
-	err := service.userProviderInfrastructure.InsertSingle(&model)
+	err := s.userProviderInfrastructure.InsertSingle(&model)
 	if err == nil {
 		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
 	}
@@ -33,10 +33,10 @@ func (service *UserProviderService) AddConnection(request *requests.UserProvider
 }
 
 // UpdateConnection changes an existent connection's active field successfully or returns a custom error
-func (service *UserProviderService) UpdateConnection(request *requests.UserProviderRequest) error {
+func (s *UserProviderService) UpdateConnection(request *requests.UserProviderRequest) error {
 	model := parseUserProviderRequestToUserProvider(request)
 
-	err := service.userProviderInfrastructure.UpdateSingle(&model)
+	err := s.userProviderInfrastructure.UpdateSingle(&model)
 	if err == nil {
 		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
 	}
@@ -44,18 +44,18 @@ func (service *UserProviderService) UpdateConnection(request *requests.UserProvi
 }
 
 // UserProviderInfrastructure setter
-func (service *UserProviderService) UserProviderInfrastructure(istruct *infrastructures.UserProviderInfrastructurer) {
-	if service.userProviderInfrastructure == nil {
-		service.userProviderInfrastructure = *istruct
+func (s *UserProviderService) UserProviderInfrastructure(i *infrastructures.UserProviderInfrastructurer) {
+	if s.userProviderInfrastructure == nil {
+		s.userProviderInfrastructure = *i
 	}
 }
 
-func parseUserProviderRequestToUserProvider(request *requests.UserProviderRequest) models.UserProvider {
+func parseUserProviderRequestToUserProvider(r *requests.UserProviderRequest) models.UserProvider {
 	model := models.UserProvider{
-		UserId:     request.UserId,
-		ProviderId: request.ProviderId,
+		UserId:     r.UserId,
+		ProviderId: r.ProviderId,
 	}
-	if request.IsActive {
+	if r.IsActive {
 		model.IsActive = 1
 	} else {
 		model.IsActive = 0

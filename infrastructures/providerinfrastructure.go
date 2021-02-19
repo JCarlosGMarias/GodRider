@@ -11,12 +11,12 @@ import (
 
 // ProviderInfrastructurer provides access to all registered webservices' providers
 type ProviderInfrastructurer interface {
-	// GetAllProviders should return all registers from provider table and its count as integer
-	GetAllProviders() ([]models.Provider, int, error)
-	// GetSingleProviderByID should return an unique provider model by its ID
-	GetSingleProviderByID(id int) (models.Provider, error)
-	// GetManyProvidersByIds should return a slice with provider's models by a slice of IDs
-	GetManyProvidersByIds(ids []int) ([]models.Provider, error)
+	// GetAll should return all registers from provider table and its count as integer
+	GetAll() ([]models.Provider, int, error)
+	// GetSingleByID should return an unique provider model by its ID
+	GetSingleByID(id int) (models.Provider, error)
+	// GetManyByIds should return a slice with provider's models by a slice of IDs
+	GetManyByIds(ids []int) ([]models.Provider, error)
 }
 
 // ProviderInfrastructure is ProvidersInfrastructurer' implementation struct
@@ -26,11 +26,8 @@ type ProviderInfrastructure struct {
 	lastUpdate time.Time
 }
 
-// ProviderDb is ProvidersInfrastructurer' implementation instance
-var ProviderDb ProviderInfrastructurer = &ProviderInfrastructure{}
-
-// GetAllProviders returns all registers from user table and its count as integer
-func (istruct *ProviderInfrastructure) GetAllProviders() ([]models.Provider, int, error) {
+// GetAll returns all registers from user table and its count as integer
+func (istruct *ProviderInfrastructure) GetAll() ([]models.Provider, int, error) {
 	if istruct.isDbUpdated() {
 		return istruct.providerDb, istruct.rows, nil
 	}
@@ -78,8 +75,8 @@ func (istruct *ProviderInfrastructure) GetAllProviders() ([]models.Provider, int
 	return istruct.providerDb, istruct.rows, nil
 }
 
-// GetSingleProviderByID returns an unique provider model by its ID
-func (istruct *ProviderInfrastructure) GetSingleProviderByID(id int) (models.Provider, error) {
+// GetSingleByID returns an unique provider model by its ID
+func (istruct *ProviderInfrastructure) GetSingleByID(id int) (models.Provider, error) {
 	if istruct.isDbUpdated() {
 		for _, provider := range istruct.providerDb {
 			if id == provider.ID {
@@ -111,11 +108,11 @@ func (istruct *ProviderInfrastructure) GetSingleProviderByID(id int) (models.Pro
 	return models.Provider{}, err
 }
 
-// GetManyProvidersByIds returns a slice with provider's models by a slice of IDs
-func (istruct *ProviderInfrastructure) GetManyProvidersByIds(ids []int) ([]models.Provider, error) {
+// GetManyByIds returns a slice with provider's models by a slice of IDs
+func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provider, error) {
 	idsCount := len(ids)
 	if idsCount <= 1 {
-		provider, err := istruct.GetSingleProviderByID(ids[0])
+		provider, err := istruct.GetSingleByID(ids[0])
 		return []models.Provider{provider}, err
 	}
 

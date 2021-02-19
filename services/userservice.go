@@ -9,66 +9,69 @@ import (
 
 // UserServicer is the user's service layer
 type UserServicer interface {
-	// GetAllUsers should return all db user models in an UserResponse's format
-	GetAllUsers() []responses.UserResponse
-	// GetUserByCredentials should return an unique user based on the provided credentials (user and pass)
-	GetUserByCredentials(userRq *requests.UserRequest) (responses.UserResponse, error)
-	// GetUserByToken should return an unique user based on the provided credentials (token)
-	GetUserByToken(userRq *requests.UserRequest) (responses.UserResponse, error)
+	// GetAll should return all db user models in an UserResponse's format
+	GetAll() []responses.UserResponse
+	// GetByCredentials should return an unique user based on the provided credentials (user and pass)
+	GetByCredentials(userRq *requests.UserRequest) (responses.UserResponse, error)
+	// GetByToken should return an unique user based on the provided credentials (token)
+	GetByToken(userRq *requests.UserRequest) (responses.UserResponse, error)
 }
 
 // UserService is the UserServicer's implementation struct
 type UserService struct {
-	userInfrastructure infrastructures.UserInfrastructurer
+	userIstruct infrastructures.UserInfrastructurer
 }
 
-// UserSrv is the UserServicer's implementation instance
-var UserSrv UserServicer = &UserService{userInfrastructure: infrastructures.UsersDb}
+// GetAll returns all db user models in an UserResponse's format
+func (s *UserService) GetAll() []responses.UserResponse {
+	users, count, _ := s.userIstruct.GetAll()
 
-// GetAllUsers returns all db user models in an UserResponse's format
-func (service *UserService) GetAllUsers() []responses.UserResponse {
-	users, count, _ := service.userInfrastructure.GetAllUsers()
-
-	usersResponses := make([]responses.UserResponse, count)
-	for _, user := range users {
-		usersResponse := parseUserToUserResponse(&user)
-		usersResponses = append(usersResponses, usersResponse)
+	usersRs := make([]responses.UserResponse, count)
+	for i, user := range users {
+		usersRs[i] = parseUserToUserResponse(&user)
 	}
 
-	return usersResponses
+	return usersRs
 }
 
-// GetUserByCredentials returns an unique user based on the provided credentials (user and pass)
-func (service *UserService) GetUserByCredentials(userRq *requests.UserRequest) (responses.UserResponse, error) {
-	user, err := service.userInfrastructure.GetSingleUserByUserAndPass(userRq.User, userRq.Password)
+// GetByCredentials returns an unique user based on the provided credentials (user and pass)
+func (s *UserService) GetByCredentials(userRq *requests.UserRequest) (responses.UserResponse, error) {
+	user, err := s.userIstruct.GetSingleByUserAndPass(userRq.User, userRq.Password)
 	if err != nil || user.ID == 0 {
 		return responses.UserResponse{}, &responses.ErrorResponse{Code: responses.BAD_CREDENTIALS, Message: "User or password are not correct!"}
 	}
 
-	userResponse := parseUserToUserResponse(&user)
-	return userResponse, nil
+	userRs := parseUserToUserResponse(&user)
+	return userRs, nil
 }
 
-// GetUserByToken returns an unique user based on the provided credentials (token)
-func (service *UserService) GetUserByToken(userRq *requests.UserRequest) (responses.UserResponse, error) {
-	user, err := service.userInfrastructure.GetSingleUserByToken(userRq.Token)
+// GetByToken returns an unique user based on the provided credentials (token)
+func (s *UserService) GetByToken(userRq *requests.UserRequest) (responses.UserResponse, error) {
+	user, err := s.userIstruct.GetSingleByToken(userRq.Token)
 	if err != nil || user.ID == 0 {
 		return responses.UserResponse{}, &responses.ErrorResponse{Code: responses.BAD_TOKEN, Message: "User token not found or expired!"}
 	}
 
-	userResponse := parseUserToUserResponse(&user)
-	return userResponse, nil
+	userRs := parseUserToUserResponse(&user)
+	return userRs, nil
 }
 
-func parseUserToUserResponse(user *models.User) responses.UserResponse {
+// UserInfrastructure setter
+func (s *UserService) UserInfrastructure(i *infrastructures.UserInfrastructurer) {
+	if s.userIstruct == nil {
+		s.userIstruct = *i
+	}
+}
+
+func parseUserToUserResponse(u *models.User) responses.UserResponse {
 	return responses.UserResponse{
-		ID:      user.ID,
-		Token:   user.Token.String,
-		User:    user.User,
-		Name:    user.Name,
-		Surname: user.Surname,
-		Email:   user.Email,
-		Phone:   user.Phone,
-		Level:   user.Level,
+		ID:      u.ID,
+		Token:   u.Token.String,
+		User:    u.User,
+		Name:    u.Name,
+		Surname: u.Surname,
+		Email:   u.Email,
+		Phone:   u.Phone,
+		Level:   u.Level,
 	}
 }

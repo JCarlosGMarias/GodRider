@@ -16,8 +16,8 @@ type ConfigurationService struct {
 }
 
 // GetAPIUrls returns an updated endpoint list for all API methods as k-v strings map.
-func (service *ConfigurationService) GetAPIUrls() map[string]string {
-	apiUrls, _, _ := service.apiUrlsInfrastructure.GetAllUrls()
+func (s *ConfigurationService) GetAPIUrls() map[string]string {
+	apiUrls, _, _ := s.apiUrlsInfrastructure.GetAllUrls()
 
 	result := map[string]string{}
 	for _, apiURL := range apiUrls {
@@ -27,8 +27,8 @@ func (service *ConfigurationService) GetAPIUrls() map[string]string {
 }
 
 // APIUrlsInfrastructure setter
-func (service *ConfigurationService) APIUrlsInfrastructure(istruct *infrastructures.APIUrlsInfrastructurer) {
-	if service.apiUrlsInfrastructure == nil {
-		service.apiUrlsInfrastructure = *istruct
+func (s *ConfigurationService) APIUrlsInfrastructure(i *infrastructures.APIUrlsInfrastructurer) {
+	if s.apiUrlsInfrastructure == nil {
+		s.apiUrlsInfrastructure = *i
 	}
 }

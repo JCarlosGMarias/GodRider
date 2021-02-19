@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"godrider/dtos/requests"
@@ -15,28 +14,38 @@ type ConfigurationControllerer interface {
 }
 
 type ConfigurationController struct {
-	configSrv services.ConfigurationServicer
+	validationSrv services.ValidationServicer
+	configSrv     services.ConfigurationServicer
 }
 
-func (ctrl *ConfigurationController) GetRoutes() map[string]string {
-	return ctrl.configSrv.GetAPIUrls()
+func (c *ConfigurationController) GetRoutes() map[string]string {
+	return c.configSrv.GetAPIUrls()
 }
 
-func (ctrl *ConfigurationController) GetApiUrls(w http.ResponseWriter, r *http.Request) {
-	if helpers.IsValidMethod(w, r, []string{http.MethodPost}) {
+func (c *ConfigurationController) GetApiUrls(w http.ResponseWriter, r *http.Request) {
+	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var apiUrlsRq requests.ApiUrlsRequest
 		helpers.ParseBody(r.Body, &apiUrlsRq)
 
-		if helpers.IsValidToken(w, r, apiUrlsRq.Token) {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(ctrl.configSrv.GetAPIUrls())
+		e := helpers.SetCommonResponseEncoder(&w)
+		if err := c.validationSrv.ValidateToken(apiUrlsRq.Token); err == nil {
+			e.Encode(c.configSrv.GetAPIUrls())
+		} else {
+			e.Encode(err)
 		}
 	}
 }
 
+// ValidationSrv setter
+func (c *ConfigurationController) ValidationSrv(s *services.ValidationServicer) {
+	if c.validationSrv == nil {
+		c.validationSrv = *s
+	}
+}
+
 // ConfigSrv setter
-func (ctrl *ConfigurationController) ConfigSrv(service *services.ConfigurationServicer) {
-	if ctrl.configSrv == nil {
-		ctrl.configSrv = *service
+func (c *ConfigurationController) ConfigSrv(s *services.ConfigurationServicer) {
+	if c.configSrv == nil {
+		c.configSrv = *s
 	}
 }

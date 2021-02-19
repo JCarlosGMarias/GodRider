@@ -10,12 +10,12 @@ import (
 
 // UserInfrastructurer provides an access to many users related db interactions
 type UserInfrastructurer interface {
-	// GetAllUsers should return all registers from user table and its count as integer
-	GetAllUsers() ([]models.User, int, error)
-	// GetSingleUserByUserAndPass should return an unique user model by its user and password
-	GetSingleUserByUserAndPass(userName string, pass string) (models.User, error)
-	// GetSingleUserByToken should return an unique user model by its token
-	GetSingleUserByToken(token string) (models.User, error)
+	// GetAll should return all registers from user table and its count as integer
+	GetAll() ([]models.User, int, error)
+	// GetSingleByUserAndPass should return an unique user model by its user and password
+	GetSingleByUserAndPass(userName string, pass string) (models.User, error)
+	// GetSingleByToken should return an unique user model by its token
+	GetSingleByToken(token string) (models.User, error)
 }
 
 // UserInfrastructure is UserInfrastructurer's implementation struct
@@ -25,11 +25,8 @@ type UserInfrastructure struct {
 	lastUpdate time.Time
 }
 
-// UsersDb is UserInfrastructurer's implementation instance
-var UsersDb UserInfrastructurer = &UserInfrastructure{}
-
-// GetAllUsers returns all registers from user table and its count as integer
-func (istruct *UserInfrastructure) GetAllUsers() ([]models.User, int, error) {
+// GetAll returns all registers from user table and its count as integer
+func (istruct *UserInfrastructure) GetAll() ([]models.User, int, error) {
 	if istruct.isDbUpdated() {
 		return istruct.userDb, istruct.rows, nil
 	}
@@ -77,8 +74,8 @@ func (istruct *UserInfrastructure) GetAllUsers() ([]models.User, int, error) {
 	return istruct.userDb, istruct.rows, nil
 }
 
-// GetSingleUserByUserAndPass returns an unique user model by its user and password
-func (istruct *UserInfrastructure) GetSingleUserByUserAndPass(userName string, pass string) (models.User, error) {
+// GetSingleByUserAndPass returns an unique user model by its user and password
+func (istruct *UserInfrastructure) GetSingleByUserAndPass(userName string, pass string) (models.User, error) {
 	if istruct.isDbUpdated() {
 		for _, user := range istruct.userDb {
 			if userName == user.User && pass == user.Password {
@@ -110,8 +107,8 @@ func (istruct *UserInfrastructure) GetSingleUserByUserAndPass(userName string, p
 	return models.User{}, err
 }
 
-// GetSingleUserByToken returns an unique user model by its token
-func (istruct *UserInfrastructure) GetSingleUserByToken(token string) (models.User, error) {
+// GetSingleByToken returns an unique user model by its token
+func (istruct *UserInfrastructure) GetSingleByToken(token string) (models.User, error) {
 	if istruct.isDbUpdated() {
 		for _, user := range istruct.userDb {
 			if token == user.Token.String {

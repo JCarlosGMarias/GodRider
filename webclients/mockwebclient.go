@@ -11,11 +11,6 @@ type mockWebClient struct {
 	mockPassword string
 }
 
-var mock = mockWebClient{
-	mockUser:     "Fooscott",
-	mockPassword: "Bartiger",
-}
-
 func (client *mockWebClient) Login(data *webclientmodels.ClientData) (bool, error) {
 	if data.User == client.mockUser && data.Password == client.mockPassword {
 		data.Token = "jhknlfsdv786y3421rhiblyu"
