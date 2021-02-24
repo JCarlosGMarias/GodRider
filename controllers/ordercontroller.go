@@ -18,6 +18,11 @@ type OrderController struct {
 }
 
 func (c *OrderController) GetOrders(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		helpers.SetOptionsResponseEncoder(&w)
+		return
+	}
+
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var orderRq requests.OrderRequest
 		helpers.ParseBody(r.Body, &orderRq)

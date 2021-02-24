@@ -25,6 +25,11 @@ type ProviderController struct {
 
 // GetProviders returns a complete list of providers
 func (c *ProviderController) GetProviders(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		helpers.SetOptionsResponseEncoder(&w)
+		return
+	}
+
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
@@ -37,6 +42,11 @@ func (c *ProviderController) GetProviders(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ProviderController) ConnectToProvider(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		helpers.SetOptionsResponseEncoder(&w)
+		return
+	}
+
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost, http.MethodPut}); err == nil {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)

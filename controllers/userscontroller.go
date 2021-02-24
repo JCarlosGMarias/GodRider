@@ -18,13 +18,22 @@ type UserController struct {
 }
 
 func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
-	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
-		var userReq requests.UserRequest
-		helpers.ParseBody(r.Body, &userReq)
+	if r.Method == http.MethodOptions {
+		helpers.SetOptionsResponseEncoder(&w)
+		return
+	}
 
-		user, errorRs := c.userSrv.GetByCredentials(&userReq)
-		e := helpers.SetCommonResponseEncoder(&w)
-		if errorRs == nil {
+	e := helpers.SetCommonResponseEncoder(&w)
+	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err != nil {
+		e.Encode(err)
+		return
+	}
+
+	var userReq requests.UserRequest
+	helpers.ParseBody(r.Body, &userReq)
+
+	if r.Method == http.MethodPost {
+		if user, errorRs := c.userSrv.GetByCredentials(&userReq); errorRs == nil {
 			e.Encode(user)
 		} else {
 			e.Encode(errorRs)
