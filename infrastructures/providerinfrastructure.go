@@ -1,7 +1,6 @@
 package infrastructures
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -21,6 +20,7 @@ type ProviderInfrastructurer interface {
 
 // ProviderInfrastructure is ProvidersInfrastructurer' implementation struct
 type ProviderInfrastructure struct {
+	tableName  string
 	providerDb []models.Provider
 	rows       int
 	lastUpdate time.Time
@@ -28,22 +28,22 @@ type ProviderInfrastructure struct {
 
 // GetAll returns all registers from user table and its count as integer
 func (istruct *ProviderInfrastructure) GetAll() ([]models.Provider, int, error) {
-	if istruct.isDbUpdated() {
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
 		return istruct.providerDb, istruct.rows, nil
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return nil, 0, err
 	}
 	defer db.Close()
 
 	var count int
-	if err := istruct.countRegisters(db, &count); err != nil {
+	if err := countRegisters(db, istruct.tableName, &count); err != nil {
 		return nil, 0, err
 	}
 
-	rows, err := db.Query("SELECT * FROM provider;")
+	rows, err := db.Query(fmt.Sprintf("SELECT * FROM %s;", istruct.tableName))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -77,7 +77,7 @@ func (istruct *ProviderInfrastructure) GetAll() ([]models.Provider, int, error) 
 
 // GetSingleByID returns an unique provider model by its ID
 func (istruct *ProviderInfrastructure) GetSingleByID(id int) (models.Provider, error) {
-	if istruct.isDbUpdated() {
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
 		for _, provider := range istruct.providerDb {
 			if id == provider.ID {
 				return provider, nil
@@ -86,13 +86,13 @@ func (istruct *ProviderInfrastructure) GetSingleByID(id int) (models.Provider, e
 		return models.Provider{}, fmt.Errorf("Provider with ID %d not found", id)
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return models.Provider{}, err
 	}
 	defer db.Close()
 
-	statement, err := db.Prepare("SELECT * FROM provider WHERE ID = ?;")
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM %s WHERE ID = ?;", istruct.tableName))
 	if err != nil {
 		return models.Provider{}, err
 	}
@@ -116,12 +116,12 @@ func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provide
 		return []models.Provider{provider}, err
 	}
 
-	if istruct.isDbUpdated() {
-		providers := make([]models.Provider, 0)
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
+		providers := make([]models.Provider, idsCount)
 		for _, provider := range istruct.providerDb {
-			for _, id := range ids {
+			for i, id := range ids {
 				if id == provider.ID {
-					providers = append(providers, provider)
+					providers[i] = provider
 				}
 			}
 		}
@@ -132,7 +132,7 @@ func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provide
 		return providers, nil
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return make([]models.Provider, 0), err
 	}
@@ -145,7 +145,7 @@ func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provide
 		queryArgs[i] = ids[i]
 	}
 
-	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM provider WHERE ID IN (%s);", strings.Join(queryPlaceHolders, ", ")))
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM "+istruct.tableName+" WHERE ID IN (%s);", strings.Join(queryPlaceHolders, ", ")))
 	if err != nil {
 		return make([]models.Provider, 0), err
 	}
@@ -163,8 +163,7 @@ func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provide
 			break
 		}
 
-		err := rows.Scan(&provider.ID, &provider.Name, &provider.Contact)
-		if err != nil {
+		if err := rows.Scan(&provider.ID, &provider.Name, &provider.Contact); err != nil {
 			return make([]models.Provider, 0), err
 		}
 
@@ -173,12 +172,9 @@ func (istruct *ProviderInfrastructure) GetManyByIds(ids []int) ([]models.Provide
 	return providers, nil
 }
 
-func (istruct *ProviderInfrastructure) isDbUpdated() bool {
-	isProviderDbSet := istruct.rows > 0
-	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
-	return isProviderDbSet && (timeAfterLastUpdate <= 3600)
-}
-
-func (istruct *ProviderInfrastructure) countRegisters(db *sql.DB, count *int) error {
-	return db.QueryRow("SELECT COUNT(*) FROM provider;").Scan(count)
+// TableName setter
+func (i *ProviderInfrastructure) TableName(name string) {
+	if i.tableName == "" {
+		i.tableName = name
+	}
 }

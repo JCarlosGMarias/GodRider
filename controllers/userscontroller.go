@@ -18,11 +18,6 @@ type UserController struct {
 }
 
 func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		helpers.SetOptionsResponseEncoder(&w)
-		return
-	}
-
 	e := helpers.SetCommonResponseEncoder(&w)
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err != nil {
 		e.Encode(err)

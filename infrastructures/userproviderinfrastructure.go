@@ -1,7 +1,6 @@
 package infrastructures
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -26,7 +25,7 @@ type UserProviderInfrastructure struct {
 
 // InsertSingle creates a new connection row
 func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.UserProvider) error {
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return err
 	}
@@ -43,8 +42,7 @@ func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.Use
 		return err
 	}
 
-	count, err := result.RowsAffected()
-	if err != nil || count == 0 {
+	if count, err := result.RowsAffected(); err != nil || count == 0 {
 		return fmt.Errorf("No new rows created")
 	}
 
@@ -56,7 +54,7 @@ func (istruct *UserProviderInfrastructure) InsertSingle(userProvider *models.Use
 
 // UpdateSingle edit a connection's active field; its used to activate/deactivate an userprovider connection
 func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.UserProvider) error {
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return err
 	}
@@ -73,8 +71,7 @@ func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.Use
 		return err
 	}
 
-	count, err := result.RowsAffected()
-	if err != nil || count == 0 {
+	if count, err := result.RowsAffected(); err != nil || count == 0 {
 		return fmt.Errorf("No rows updated")
 	}
 
@@ -90,8 +87,8 @@ func (istruct *UserProviderInfrastructure) UpdateSingle(userProvider *models.Use
 }
 
 // TableName setter
-func (istruct *UserProviderInfrastructure) TableName(name string) {
-	if istruct.tableName == "" {
-		istruct.tableName = name
+func (i *UserProviderInfrastructure) TableName(name string) {
+	if i.tableName == "" {
+		i.tableName = name
 	}
 }

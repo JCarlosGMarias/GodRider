@@ -17,16 +17,15 @@ type UserProviderServicer interface {
 
 // UserProviderService is UserProviderServicer's implementation struct
 type UserProviderService struct {
-	userProviderInfrastructure infrastructures.UserProviderInfrastructurer
+	userProviderIstructr infrastructures.UserProviderInfrastructurer
 }
 
 // AddConnection creates a new userprovider connection or returns a custom service error
 func (s *UserProviderService) AddConnection(request *requests.UserProviderRequest) error {
-	model := parseUserProviderRequestToUserProvider(request)
+	model := parseRqToModel(request)
 	model.IsActive = 1
 
-	err := s.userProviderInfrastructure.InsertSingle(&model)
-	if err == nil {
+	if err := s.userProviderIstructr.InsertSingle(&model); err == nil {
 		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
 	}
 	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to add suscription to provider!"}
@@ -34,10 +33,9 @@ func (s *UserProviderService) AddConnection(request *requests.UserProviderReques
 
 // UpdateConnection changes an existent connection's active field successfully or returns a custom error
 func (s *UserProviderService) UpdateConnection(request *requests.UserProviderRequest) error {
-	model := parseUserProviderRequestToUserProvider(request)
+	model := parseRqToModel(request)
 
-	err := s.userProviderInfrastructure.UpdateSingle(&model)
-	if err == nil {
+	if err := s.userProviderIstructr.UpdateSingle(&model); err == nil {
 		return &responses.ErrorResponse{Code: responses.OK, Message: ""}
 	}
 	return &responses.ErrorResponse{Code: responses.ADD_ERROR, Message: "Unable to update suscription to provider!"}
@@ -45,12 +43,12 @@ func (s *UserProviderService) UpdateConnection(request *requests.UserProviderReq
 
 // UserProviderInfrastructure setter
 func (s *UserProviderService) UserProviderInfrastructure(i *infrastructures.UserProviderInfrastructurer) {
-	if s.userProviderInfrastructure == nil {
-		s.userProviderInfrastructure = *i
+	if s.userProviderIstructr == nil {
+		s.userProviderIstructr = *i
 	}
 }
 
-func parseUserProviderRequestToUserProvider(r *requests.UserProviderRequest) models.UserProvider {
+func parseRqToModel(r *requests.UserProviderRequest) models.UserProvider {
 	model := models.UserProvider{
 		UserId:     r.UserId,
 		ProviderId: r.ProviderId,

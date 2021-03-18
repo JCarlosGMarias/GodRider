@@ -17,12 +17,12 @@ type DIContainer struct {
 	providerIstructr     infrastructures.ProviderInfrastructurer
 	webClientFactorier   webclients.WebClientFactorier
 	// Services
-	configSrvr       services.ConfigurationServicer
-	userSrvr         services.UserServicer
-	providerSrvr     services.ProviderServicer
-	userProviderSrvr services.UserProviderServicer
-	orderSrvr        services.OrderServicer
-	validationSrvr   services.ValidationServicer
+	configSvcr       services.ConfigurationServicer
+	userSvcr         services.UserServicer
+	providerSvcr     services.ProviderServicer
+	userProviderSvcr services.UserProviderServicer
+	orderSvcr        services.OrderServicer
+	validationSvcr   services.ValidationServicer
 	// Controllers
 	ConfigCtrlr   controllers.ConfigurationControllerer
 	UserCtrlr     controllers.UserControllerer
@@ -40,21 +40,30 @@ func (di *DIContainer) Register() error {
 }
 
 func (di *DIContainer) registerInfrastructures() {
-	di.apiUrlsIstructr = &infrastructures.APIUrlsInfrastructure{}
-	di.userIstructr = &infrastructures.UserInfrastructure{}
-	userProviderIstruct := &infrastructures.UserProviderInfrastructure{}
-	di.userProviderIstructr = userProviderIstruct
-	di.providerIstructr = &infrastructures.ProviderInfrastructure{}
-	di.webClientFactorier = &webclients.ClientFactory
+	apiUrlsIstruct := &infrastructures.APIUrlsInfrastructure{}
+	apiUrlsIstruct.TableName("apiurl")
+	di.apiUrlsIstructr = apiUrlsIstruct
 
+	userIstruct := &infrastructures.UserInfrastructure{}
+	userIstruct.TableName("user")
+	di.userIstructr = userIstruct
+
+	providerIstruct := &infrastructures.ProviderInfrastructure{}
+	providerIstruct.TableName("provider")
+	di.providerIstructr = providerIstruct
+
+	userProviderIstruct := &infrastructures.UserProviderInfrastructure{}
 	userProviderIstruct.TableName("userprovider")
+	di.userProviderIstructr = userProviderIstruct
+
+	di.webClientFactorier = &webclients.ClientFactory
 }
 
 func (di *DIContainer) allInfrastructuresCreated() bool {
 	return di.apiUrlsIstructr != nil &&
 		di.userIstructr != nil &&
-		di.userProviderIstructr != nil &&
 		di.providerIstructr != nil &&
+		di.userProviderIstructr != nil &&
 		di.webClientFactorier != nil
 }
 
@@ -63,41 +72,41 @@ func (di *DIContainer) registerServices() error {
 		return fmt.Errorf("Unable to register services: Check all infrastructure register")
 	}
 
-	configSrv := &services.ConfigurationService{}
-	configSrv.APIUrlsInfrastructure(&di.apiUrlsIstructr)
-	di.configSrvr = configSrv
+	configSvc := &services.ConfigurationService{}
+	configSvc.APIUrlsInfrastructure(&di.apiUrlsIstructr)
+	di.configSvcr = configSvc
 
-	userSrv := &services.UserService{}
-	userSrv.UserInfrastructure(&di.userIstructr)
-	di.userSrvr = userSrv
+	userSvc := &services.UserService{}
+	userSvc.UserInfrastructure(&di.userIstructr)
+	di.userSvcr = userSvc
 
-	providerSrv := &services.ProviderService{}
-	providerSrv.ProviderInfrastructure(&di.providerIstructr)
-	di.providerSrvr = providerSrv
+	providerSvc := &services.ProviderService{}
+	providerSvc.ProviderInfrastructure(&di.providerIstructr)
+	di.providerSvcr = providerSvc
 
-	userProviderSrv := &services.UserProviderService{}
-	userProviderSrv.UserProviderInfrastructure(&di.userProviderIstructr)
-	di.userProviderSrvr = userProviderSrv
+	userProviderSvc := &services.UserProviderService{}
+	userProviderSvc.UserProviderInfrastructure(&di.userProviderIstructr)
+	di.userProviderSvcr = userProviderSvc
 
-	orderSrv := &services.OrderService{}
-	orderSrv.ProviderInfrastructure(&di.providerIstructr)
-	orderSrv.Factory(&di.webClientFactorier)
-	di.orderSrvr = orderSrv
+	orderSvc := &services.OrderService{}
+	orderSvc.ProviderInfrastructure(&di.providerIstructr)
+	orderSvc.Factory(&di.webClientFactorier)
+	di.orderSvcr = orderSvc
 
-	validationSrv := &services.ValidationService{}
-	validationSrv.UserSrv(&di.userSrvr)
-	di.validationSrvr = validationSrv
+	validationSvc := &services.ValidationService{}
+	validationSvc.UserSrv(&di.userSvcr)
+	di.validationSvcr = validationSvc
 
 	return nil
 }
 
 func (di *DIContainer) allServicesCreated() bool {
-	return di.configSrvr != nil &&
-		di.userSrvr != nil &&
-		di.providerSrvr != nil &&
-		di.userProviderSrvr != nil &&
-		di.orderSrvr != nil &&
-		di.validationSrvr != nil
+	return di.configSvcr != nil &&
+		di.userSvcr != nil &&
+		di.providerSvcr != nil &&
+		di.userProviderSvcr != nil &&
+		di.orderSvcr != nil &&
+		di.validationSvcr != nil
 }
 
 func (di *DIContainer) registerControllers() error {
@@ -106,24 +115,24 @@ func (di *DIContainer) registerControllers() error {
 	}
 
 	configCtrl := &controllers.ConfigurationController{}
-	configCtrl.ConfigSrv(&di.configSrvr)
-	configCtrl.ValidationSrv(&di.validationSrvr)
+	configCtrl.ConfigSrv(&di.configSvcr)
+	configCtrl.ValidationSrv(&di.validationSvcr)
 	di.ConfigCtrlr = configCtrl
 
 	userCtrl := &controllers.UserController{}
-	userCtrl.UserSrv(&di.userSrvr)
-	userCtrl.ValidationSrv(&di.validationSrvr)
+	userCtrl.UserSrv(&di.userSvcr)
+	userCtrl.ValidationSrv(&di.validationSvcr)
 	di.UserCtrlr = userCtrl
 
 	providerCtrl := &controllers.ProviderController{}
-	providerCtrl.ProviderSrv(&di.providerSrvr)
-	providerCtrl.UserProviderSrv(&di.userProviderSrvr)
-	providerCtrl.ValidationSrv(&di.validationSrvr)
+	providerCtrl.ProviderSrv(&di.providerSvcr)
+	providerCtrl.UserProviderSrv(&di.userProviderSvcr)
+	providerCtrl.ValidationSrv(&di.validationSvcr)
 	di.ProviderCtrlr = providerCtrl
 
 	orderCtrl := &controllers.OrderController{}
-	orderCtrl.OrderSrv(&di.orderSrvr)
-	orderCtrl.ValidationSrv(&di.validationSrvr)
+	orderCtrl.OrderSrv(&di.orderSvcr)
+	orderCtrl.ValidationSrv(&di.validationSvcr)
 	di.OrderCtrlr = orderCtrl
 
 	return nil

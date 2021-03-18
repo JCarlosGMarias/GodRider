@@ -23,11 +23,6 @@ func (c *ConfigurationController) GetRoutes() map[string]string {
 }
 
 func (c *ConfigurationController) GetApiUrls(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		helpers.SetOptionsResponseEncoder(&w)
-		return
-	}
-
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var apiUrlsRq requests.ApiUrlsRequest
 		helpers.ParseBody(r.Body, &apiUrlsRq)

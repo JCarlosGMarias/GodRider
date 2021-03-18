@@ -1,7 +1,6 @@
 package infrastructures
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -20,6 +19,7 @@ type UserInfrastructurer interface {
 
 // UserInfrastructure is UserInfrastructurer's implementation struct
 type UserInfrastructure struct {
+	tableName  string
 	userDb     []models.User
 	rows       int
 	lastUpdate time.Time
@@ -27,22 +27,22 @@ type UserInfrastructure struct {
 
 // GetAll returns all registers from user table and its count as integer
 func (istruct *UserInfrastructure) GetAll() ([]models.User, int, error) {
-	if istruct.isDbUpdated() {
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
 		return istruct.userDb, istruct.rows, nil
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return nil, 0, err
 	}
 	defer db.Close()
 
 	var count int
-	if err := istruct.countRegisters(db, &count); err != nil {
+	if err := countRegisters(db, istruct.tableName, &count); err != nil {
 		return nil, 0, err
 	}
 
-	rows, err := db.Query("SELECT * FROM user;")
+	rows, err := db.Query(fmt.Sprintf("SELECT * FROM %s;", istruct.tableName))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -76,7 +76,7 @@ func (istruct *UserInfrastructure) GetAll() ([]models.User, int, error) {
 
 // GetSingleByUserAndPass returns an unique user model by its user and password
 func (istruct *UserInfrastructure) GetSingleByUserAndPass(userName string, pass string) (models.User, error) {
-	if istruct.isDbUpdated() {
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
 		for _, user := range istruct.userDb {
 			if userName == user.User && pass == user.Password {
 				return user, nil
@@ -85,13 +85,13 @@ func (istruct *UserInfrastructure) GetSingleByUserAndPass(userName string, pass 
 		return models.User{}, fmt.Errorf("User %s not found", userName)
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return models.User{}, err
 	}
 	defer db.Close()
 
-	statement, err := db.Prepare("SELECT * FROM user WHERE user = ? AND password = ?;")
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM %s WHERE user = ? AND password = ?;", istruct.tableName))
 	if err != nil {
 		return models.User{}, err
 	}
@@ -109,7 +109,7 @@ func (istruct *UserInfrastructure) GetSingleByUserAndPass(userName string, pass 
 
 // GetSingleByToken returns an unique user model by its token
 func (istruct *UserInfrastructure) GetSingleByToken(token string) (models.User, error) {
-	if istruct.isDbUpdated() {
+	if isDbUpdated(istruct.rows, istruct.lastUpdate) {
 		for _, user := range istruct.userDb {
 			if token == user.Token.String {
 				return user, nil
@@ -118,13 +118,13 @@ func (istruct *UserInfrastructure) GetSingleByToken(token string) (models.User, 
 		return models.User{}, fmt.Errorf("User with given token not found")
 	}
 
-	db, err := sql.Open("sqlite", "./db/godrider.db")
+	db, err := openDb()
 	if err != nil {
 		return models.User{}, err
 	}
 	defer db.Close()
 
-	statement, err := db.Prepare("SELECT * FROM user WHERE token = ?;")
+	statement, err := db.Prepare(fmt.Sprintf("SELECT * FROM %s WHERE token = ?;", istruct.tableName))
 	if err != nil {
 		return models.User{}, err
 	}
@@ -140,12 +140,9 @@ func (istruct *UserInfrastructure) GetSingleByToken(token string) (models.User, 
 	return models.User{}, err
 }
 
-func (istruct *UserInfrastructure) isDbUpdated() bool {
-	isUserDbSet := istruct.rows > 0
-	timeAfterLastUpdate := time.Now().Unix() - istruct.lastUpdate.Unix()
-	return isUserDbSet && (timeAfterLastUpdate <= 3600)
-}
-
-func (istruct *UserInfrastructure) countRegisters(db *sql.DB, count *int) error {
-	return db.QueryRow("SELECT COUNT(*) FROM user;").Scan(count)
+// TableName setter
+func (i *UserInfrastructure) TableName(name string) {
+	if i.tableName == "" {
+		i.tableName = name
+	}
 }

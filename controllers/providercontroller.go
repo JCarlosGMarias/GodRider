@@ -25,11 +25,6 @@ type ProviderController struct {
 
 // GetProviders returns a complete list of providers
 func (c *ProviderController) GetProviders(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		helpers.SetOptionsResponseEncoder(&w)
-		return
-	}
-
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost}); err == nil {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
@@ -42,11 +37,6 @@ func (c *ProviderController) GetProviders(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ProviderController) ConnectToProvider(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		helpers.SetOptionsResponseEncoder(&w)
-		return
-	}
-
 	if err := c.validationSrv.ValidateMethod(r.Method, []string{http.MethodPost, http.MethodPut}); err == nil {
 		var providerRq requests.ProviderRequest
 		helpers.ParseBody(r.Body, &providerRq)
@@ -60,14 +50,12 @@ func (c *ProviderController) ConnectToProvider(w http.ResponseWriter, r *http.Re
 				IsActive:   providerRq.IsActive,
 			}
 
-			var err error
-			if r.Method == http.MethodPost {
-				err = c.userProviderSrv.AddConnection(&request)
-			} else if r.Method == http.MethodPut {
-				err = c.userProviderSrv.UpdateConnection(&request)
-			}
 			e := helpers.SetCommonResponseEncoder(&w)
-			e.Encode(err)
+			if r.Method == http.MethodPost {
+				e.Encode(c.userProviderSrv.AddConnection(&request))
+			} else if r.Method == http.MethodPut {
+				e.Encode(c.userProviderSrv.UpdateConnection(&request))
+			}
 		}
 	}
 }
